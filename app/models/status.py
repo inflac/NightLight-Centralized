@@ -1,28 +1,28 @@
-from db import db
+from ..db import db
 
 
 class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(15), nullable=False)
+    name = db.Column(db.String(15), unique=True, nullable=False)
     description_de = db.Column(db.String(200), nullable=False)
     description_en = db.Column(db.String(200), nullable=False)
 
     @classmethod
-    def get_status(cls, status: str):
+    def get_status(cls, name: str):
         """Query and return a status by name."""
-        status = Status.query.filter_by(status=status).first()
+        status = Status.query.filter_by(name=name).first()
         if not status:
-            raise ValueError(f"Status '{status}' not found.")
+            raise ValueError(f"Status '{name}' not found.")
         return status
 
     @classmethod
-    def add_status(cls, status_name: str, description_de: str, description_en: str):
+    def add_status(cls, name: str, description_de: str, description_en: str):
         """Add a new status to the db."""
-        if Status.query.filter_by(status=status_name).first():
-            raise ValueError(f"Status '{status_name}' already exists.")
+        if Status.query.filter_by(name=name).first():
+            raise ValueError(f"Status '{name}' already exists.")
         
         try:
-            new_status = Status(status=status_name, description_de=description_de, description_en=description_en)
+            new_status = Status(name=name, description_de=description_de, description_en=description_en)
             db.session.add(new_status)
             db.session.commit()
             return new_status
@@ -31,11 +31,11 @@ class Status(db.Model):
             raise RuntimeError(f"Error while adding the status: {str(e)}")
 
     @classmethod
-    def remove_status(cls, status_name: str):
+    def remove_status(cls, name: str):
         """Remove a status from the db by its name."""
-        status_to_remove = Status.query.filter_by(status=status_name).first()
+        status_to_remove = Status.query.filter_by(name=name).first()
         if not status_to_remove:
-            raise ValueError(f"Status '{status_name}' does not exist.")
+            raise ValueError(f"Status '{name}' does not exist.")
         
         try:
             db.session.delete(status_to_remove)
@@ -50,8 +50,7 @@ class Status(db.Model):
         try:
             statuses = Status.query.all()
             status_list = [{
-                'id': status.id,
-                'status': status.status,
+                'name': status.name,
                 'description_de': status.description_de,
                 'description_en': status.description_en
             } for status in statuses]
@@ -60,4 +59,4 @@ class Status(db.Model):
             raise RuntimeError(f"Error while fetching the statuses: {str(e)}")
 
     def __repr__(self):
-        return f"Status('{self.status}')"
+        return f"Status('{self.name}')"

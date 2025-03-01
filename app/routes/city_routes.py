@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models import City
+from ..models import City
 
 city_bp = Blueprint("city", __name__)
 
@@ -10,9 +10,8 @@ def get_city(name):
     city = City.get_city(name)
     
     return jsonify({
-        "id": city.id,
         "name": city.name,
-        "status": city.status.status,  # Only return status name
+        "status": city.status.name,  # Only return status name
         "instagram_media_id": city.instagram_media_id
     }), 200
 
@@ -26,7 +25,7 @@ def add_city(name):
         "message": "City added successfully",
         "id": new_city.id,
         "name": new_city.name,
-        "status": new_city.status.status
+        "status": new_city.status.name
     }), 201
 
 # Route to remove a city

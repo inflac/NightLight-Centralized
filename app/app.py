@@ -1,21 +1,39 @@
-from setup import create_app
-from config import Config
+from flask import Flask
 
-app = create_app()
+from time import sleep
 
-# Register the blueprint for status-related routes
-from routes import *
+from .config import Config
+from .db import db
+from .setup import preinitialize_statuses
+from .routes import *
 
-app.register_blueprint(status_bp, url_prefix='/status')
-app.register_blueprint(city_bp, url_prefix='/city')
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-# Global error handlers
-app.register_error_handler(400, bad_request_error)
-app.register_error_handler(404, not_found_error)
-app.register_error_handler(500, internal_error)
-app.register_error_handler(ValueError, handle_value_error)
-app.register_error_handler(RuntimeError, handle_runtime_error)
-app.register_error_handler(Exception, handle_generic_error)
+    # Set up logging
+    Config.configure_logging()
 
-if __name__ == '__main__':
-    app.run(host=Config.HOST, port=Config.PORT, debug=True)
+    # Configure CORS
+    Config.configure_cors(app)
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+        sleep(10)
+        preinitialize_statuses()
+
+    # Register blueprints
+    app.register_blueprint(status_bp, url_prefix='/status')
+    app.register_blueprint(city_bp, url_prefix='/city')
+
+    # Global error handlers
+    app.register_error_handler(400, bad_request_error)
+    app.register_error_handler(404, not_found_error)
+    app.register_error_handler(500, internal_error)
+    app.register_error_handler(ValueError, handle_value_error)
+    app.register_error_handler(RuntimeError, handle_runtime_error)
+    app.register_error_handler(Exception, handle_generic_error)
+
+    return app

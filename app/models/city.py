@@ -1,5 +1,5 @@
-from db import db
-from models.status import Status
+from ..db import db
+from .status import Status
 
 
 class City(db.Model):

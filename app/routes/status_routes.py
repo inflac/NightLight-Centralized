@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import Status
+from ..models import Status
 
 status_bp = Blueprint('status', __name__)
 
@@ -9,8 +9,7 @@ def get_status(status_name):
     status = Status.get_status(status_name)
     
     return jsonify({
-        "id": status.id,
-        "status": status.status,
+        "name": status.name,
         "description_de": status.description_de,
         "description_en": status.description_en
     }), 200
@@ -32,7 +31,7 @@ def add_status(status):
 
     return jsonify({
         "message": "Status created successfully",
-        "status": created_status.status,
+        "status": created_status.name,
         "description_de": created_status.description_de,
         "description_en": created_status.description_en
     }), 201
