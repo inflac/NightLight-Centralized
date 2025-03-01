@@ -4,9 +4,9 @@ from ..models import Status
 status_bp = Blueprint('status', __name__)
 
 # Route to get a specific status by name
-@status_bp.route('/<status_name>', methods=['GET'])
-def get_status(status_name):
-    status = Status.get_status(status_name)
+@status_bp.route('/<name>', methods=['GET'])
+def get_status(name):
+    status = Status.get_status(name)
     
     return jsonify({
         "name": status.name,
@@ -15,8 +15,8 @@ def get_status(status_name):
     }), 200
 
 # Route to add a new status
-@status_bp.route('/<string:status>', methods=['POST'])
-def add_status(status):
+@status_bp.route('/<string:name>', methods=['POST'])
+def add_status(name):
     data = request.get_json()
 
     # Validate input
@@ -27,21 +27,21 @@ def add_status(status):
     description_en = data["description_en"]
 
     # Call the add_status method from the Status model
-    created_status = Status.add_status(status, description_de, description_en)
+    status = Status.add_status(name, description_de, description_en)
 
     return jsonify({
         "message": "Status created successfully",
-        "status": created_status.name,
-        "description_de": created_status.description_de,
-        "description_en": created_status.description_en
+        "name": status.name,
+        "description_de": status.description_de,
+        "description_en": status.description_en
     }), 201
 
 # Route to remove a status
-@status_bp.route('/<string:status>', methods=['DELETE'])
-def remove_status(status):
-    Status.remove_status(status)
+@status_bp.route('/<string:name>', methods=['DELETE'])
+def remove_status(name):
+    Status.remove_status(name)
 
-    return jsonify({"message": f"Status '{status}' removed successfully."}), 200
+    return jsonify({"message": f"Status '{name}' removed successfully."}), 200
 
 # Route to list all statuses
 @status_bp.route('/statuses', methods=['GET'])
