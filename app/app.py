@@ -1,7 +1,5 @@
 from flask import Flask
 
-from time import sleep
-
 from .config import Config
 from .db import db
 from .setup import preinitialize_statuses
@@ -21,16 +19,16 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        sleep(10)
         preinitialize_statuses()
 
     # Register public routes
+    app.register_blueprint(public_bp, url_prefix='/public')
     app.register_blueprint(nightline_bp, url_prefix='/nightline')
 
     # Conditionally register admin routes
     if Config.ENABLE_ADMIN_ROUTES:
-        app.register_blueprint(admin_status_bp, url_prefix="/status")
-        app.register_blueprint(admin_nightline_bp, url_prefix="/nightline")
+        app.register_blueprint(admin_status_bp, url_prefix="/admin/status")
+        app.register_blueprint(admin_nightline_bp, url_prefix="/admin/nightline")
 
     # Global error handlers
     app.register_error_handler(400, bad_request_error)

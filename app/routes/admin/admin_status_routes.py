@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from ...models import Status
 
 admin_status_bp = Blueprint('admin_status', __name__)

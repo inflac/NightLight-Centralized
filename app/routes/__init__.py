@@ -1,9 +1,11 @@
-from .nightline_routes import nightline_bp
+from .public_routes import public_bp
+from .nightline.nightline_routes import nightline_bp
 from .admin.admin_status_routes import admin_status_bp
 from .admin.admin_nightline_routes import admin_nightline_bp
 from .errors import *
 
-__all__ = ["nightline_bp",
+__all__ = ["public_bp",
+           "nightline_bp",
            "admin_status_bp",
            "admin_nightline_bp",
            "bad_request_error",

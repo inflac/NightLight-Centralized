@@ -3,6 +3,18 @@ from ...models import Nightline
 
 admin_nightline_bp = Blueprint("admin_nightline", __name__)
 
+# Route to get a specific nightline by name
+@admin_nightline_bp.route("/<string:name>", methods=["GET"])
+def get_nightline(name):
+    """Retrieve details of a specific nightline."""
+    nightline = Nightline.get_nightline(name)
+
+    return jsonify({
+        "name": nightline.name,
+        "status": nightline.status.name,  # Only return status name
+        "instagram_media_id": nightline.instagram_media_id
+    }), 200
+
 # Route to add a new nightline
 @admin_nightline_bp.route("/<string:name>", methods=["POST"])
 def add_nightline(name):
@@ -24,8 +36,8 @@ def remove_nightline(name):
     return jsonify({"message": f"Nightline '{name}' removed successfully."}), 200
 
 # Route to list all cities
-@admin_nightline_bp.route("/cities", methods=["GET"])
-def list_cities():
-    """List all cities."""
+@admin_nightline_bp.route("/list", methods=["GET"])
+def list_nightlines():
+    """List all nightlines."""
     cities = Nightline.list_cities()
     return jsonify(cities), 200

@@ -64,5 +64,22 @@ class Nightline(db.Model):
         except Exception as e:
             raise RuntimeError(f"Error while fetching the cities: {str(e)}")
 
+    def set_status(self, name: str):
+        """Set the status of a nightline by the status name."""
+        new_status = Status.get_status(name)
+        self.status = new_status
+        db.session.commit()
+
+    def reset_status(self):
+        """Reset the status of a nightline to default."""
+        new_status = Status.get_status("default")
+        self.status = new_status
+        db.session.commit()
+
+    def set_now(self, now: bool):
+        """Set now value of a nightline."""
+        self.now = now
+        db.session.commit()
+
     def __repr__(self):
         return f"Nightline('{self.name}')"
