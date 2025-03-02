@@ -1,0 +1,2 @@
+[tool.autopep8]
+ignore = ["E302"]  # Don't enforce two blank lines before top-level functions

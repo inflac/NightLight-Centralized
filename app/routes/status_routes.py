@@ -7,7 +7,7 @@ status_bp = Blueprint('status', __name__)
 @status_bp.route('/<name>', methods=['GET'])
 def get_status(name):
     status = Status.get_status(name)
-    
+
     return jsonify({
         "name": status.name,
         "description_de": status.description_de,

@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Lint & Format with pylint and autopep8",
+            "type": "shell",
+            "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

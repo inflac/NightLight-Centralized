@@ -8,7 +8,7 @@ city_bp = Blueprint("city", __name__)
 def get_city(name):
     """Retrieve details of a specific city."""
     city = City.get_city(name)
-    
+
     return jsonify({
         "name": city.name,
         "status": city.status.name,  # Only return status name
@@ -20,7 +20,7 @@ def get_city(name):
 def add_city(name):
     """Add a new city with the default status."""
     new_city = City.add_city(name)
-    
+
     return jsonify({
         "message": "City added successfully",
         "id": new_city.id,

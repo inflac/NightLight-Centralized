@@ -20,9 +20,12 @@ class Status(db.Model):
         """Add a new status to the db."""
         if Status.query.filter_by(name=name).first():
             raise ValueError(f"Status '{name}' already exists.")
-        
+
         try:
-            new_status = Status(name=name, description_de=description_de, description_en=description_en)
+            new_status = Status(
+                name=name,
+                description_de=description_de,
+                description_en=description_en)
             db.session.add(new_status)
             db.session.commit()
             return new_status
@@ -36,7 +39,7 @@ class Status(db.Model):
         status_to_remove = Status.query.filter_by(name=name).first()
         if not status_to_remove:
             raise ValueError(f"Status '{name}' does not exist.")
-        
+
         try:
             db.session.delete(status_to_remove)
             db.session.commit()
