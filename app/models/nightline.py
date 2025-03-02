@@ -1,17 +1,23 @@
 from ..db import db
 from .status import Status
-
+from .apikey import ApiKey
 
 class Nightline(db.Model):
+    __tablename__ = "nightlines"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     status_id = db.Column(
         db.Integer,
-        db.ForeignKey('status.id'),
+        db.ForeignKey("statuses.id"),
         nullable=False)
-    status = db.relationship('Status', backref='cities')
+    status = db.relationship("Status", backref="nightlines")
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
+
+    api_key = db.relationship(
+        "ApiKey",
+        uselist=False,
+        back_populates="nightline")
 
     @classmethod
     def get_nightline(cls, name: str):
@@ -28,6 +34,10 @@ class Nightline(db.Model):
 
         try:
             new_nightline = cls(name=name, status=default_status)
+
+            api_key = ApiKey(key=ApiKey.generate_api_key())
+            new_nightline.api_key = api_key
+
             db.session.add(new_nightline)
             db.session.commit()
             return new_nightline
@@ -79,6 +89,22 @@ class Nightline(db.Model):
     def set_now(self, now: bool):
         """Set now value of a nightline."""
         self.now = now
+        db.session.commit()
+
+    def get_api_key(self):
+        """Get the API key."""
+        if self.api_key:
+            return self.api_key.key
+        return None
+
+    def renew_api_key(self):
+        """Generate and assign a new 256B API key to the nightline."""
+        if self.api_key:
+            # Generate a new key and update the existing record
+            self.api_key.key = ApiKey.generate_api_key()
+        else:
+            # If no API key exists, create a new one
+            self.api_key = ApiKey(key=ApiKey.generate_api_key())
         db.session.commit()
 
     def __repr__(self):

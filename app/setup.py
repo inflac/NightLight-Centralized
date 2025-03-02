@@ -7,10 +7,10 @@ def preinitialize_statuses():
     """Pre-initialize default statuses if they don't exist."""
     default_statuses = [
         {"name": "default",
-         "description_de": "Kein spezifischer Status gesetzt.",
-         "description_en": "No specific status set.",
-         "description_now_de": "",
-         "description_now_en": ""},
+         "description_de": "",
+         "description_en": "",
+         "description_now_de": "Wir sind jetzt erreichbar 📞",
+         "description_now_en": "We're now available 📞"},
         {"name": "german",
          "description_de": "Heute sind wir nur auf Deutsch erreichbar 📞",
          "description_en": "Today we're only available in German 📞",
