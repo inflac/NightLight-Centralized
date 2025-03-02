@@ -4,11 +4,20 @@
         {
             "label": "Lint & Format with pylint and autopep8",
             "type": "shell",
-            "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')",
+            "command": "${env:COMSPEC} -Command .venv\\Scripts\\Activate && pylint --errors-only $(git ls-files '*.py') && .venv\\Scripts\\autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
+            },
+            "windows": {
+                "command": ". .venv\\Scripts\\Activate; pylint --errors-only $(git ls-files '*.py'); .venv\\Scripts\\autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
+            },
+            "linux": {
+                "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
+            },
+            "osx": {
+                "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
             }
         }
     ]

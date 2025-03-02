@@ -18,7 +18,8 @@ class Status(db.Model):
         return status
 
     @classmethod
-    def add_status(cls, name: str, description_de: str, description_en: str, description_now_de: str, description_now_en: str):
+    def add_status(cls, name: str, description_de: str, description_en: str,
+                   description_now_de: str, description_now_en: str):
         """Add a new status to the db."""
         if Status.query.filter_by(name=name).first():
             raise ValueError(f"Status '{name}' already exists.")

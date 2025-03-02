@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from ...models import Nightline
+from app.models import Nightline
 
 nightline_bp = Blueprint("nightline", __name__)
 

@@ -28,7 +28,9 @@ def create_app():
     # Conditionally register admin routes
     if Config.ENABLE_ADMIN_ROUTES:
         app.register_blueprint(admin_status_bp, url_prefix="/admin/status")
-        app.register_blueprint(admin_nightline_bp, url_prefix="/admin/nightline")
+        app.register_blueprint(
+            admin_nightline_bp,
+            url_prefix="/admin/nightline")
 
     # Global error handlers
     app.register_error_handler(400, bad_request_error)

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from ...models import Nightline
+from app.models import Nightline
 
 admin_nightline_bp = Blueprint("admin_nightline", __name__)
 
@@ -33,7 +33,8 @@ def add_nightline(name):
 def remove_nightline(name):
     """Remove a nightline by name."""
     Nightline.remove_nightline(name)
-    return jsonify({"message": f"Nightline '{name}' removed successfully."}), 200
+    return jsonify(
+        {"message": f"Nightline '{name}' removed successfully."}), 200
 
 # Route to list all cities
 @admin_nightline_bp.route("/list", methods=["GET"])

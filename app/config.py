@@ -21,7 +21,9 @@ class Config:
     PORT = int(os.getenv("PORT", 5000))
 
     # Admin routes enabled from .env. False by default
-    ENABLE_ADMIN_ROUTES = os.getenv("ENABLE_ADMIN_ROUTES", "false").lower() == "true"
+    ENABLE_ADMIN_ROUTES = os.getenv(
+        "ENABLE_ADMIN_ROUTES",
+        "false").lower() == "true"
 
     @staticmethod
     def configure_cors(app):

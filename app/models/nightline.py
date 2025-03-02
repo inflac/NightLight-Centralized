@@ -6,9 +6,9 @@ class Nightline(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     status_id = db.Column(
-            db.Integer,
-            db.ForeignKey('status.id'),
-            nullable=False)
+        db.Integer,
+        db.ForeignKey('status.id'),
+        nullable=False)
     status = db.relationship('Status', backref='cities')
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
