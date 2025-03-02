@@ -24,9 +24,13 @@ def create_app():
         sleep(10)
         preinitialize_statuses()
 
-    # Register blueprints
-    app.register_blueprint(status_bp, url_prefix='/status')
-    app.register_blueprint(city_bp, url_prefix='/city')
+    # Register public routes
+    app.register_blueprint(nightline_bp, url_prefix='/nightline')
+
+    # Conditionally register admin routes
+    if Config.ENABLE_ADMIN_ROUTES:
+        app.register_blueprint(admin_status_bp, url_prefix="/status")
+        app.register_blueprint(admin_nightline_bp, url_prefix="/nightline")
 
     # Global error handlers
     app.register_error_handler(400, bad_request_error)

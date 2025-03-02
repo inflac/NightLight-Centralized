@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
-from ..models import Status
+from ...models import Status
 
-status_bp = Blueprint('status', __name__)
+admin_status_bp = Blueprint('admin_status', __name__)
 
 # Route to get a specific status by name
-@status_bp.route('/<name>', methods=['GET'])
+@admin_status_bp.route('/<name>', methods=['GET'])
 def get_status(name):
     status = Status.get_status(name)
 
@@ -15,7 +15,7 @@ def get_status(name):
     }), 200
 
 # Route to add a new status
-@status_bp.route('/<string:name>', methods=['POST'])
+@admin_status_bp.route('/<string:name>', methods=['POST'])
 def add_status(name):
     data = request.get_json()
 
@@ -37,14 +37,14 @@ def add_status(name):
     }), 201
 
 # Route to remove a status
-@status_bp.route('/<string:name>', methods=['DELETE'])
+@admin_status_bp.route('/<string:name>', methods=['DELETE'])
 def remove_status(name):
     Status.remove_status(name)
 
     return jsonify({"message": f"Status '{name}' removed successfully."}), 200
 
 # Route to list all statuses
-@status_bp.route('/statuses', methods=['GET'])
+@admin_status_bp.route('/statuses', methods=['GET'])
 def list_status():
     statuses = Status.list_status()
 

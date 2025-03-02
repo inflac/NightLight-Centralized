@@ -20,6 +20,9 @@ class Config:
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 5000))
 
+    # Admin routes enabled from .env. False by default
+    ENABLE_ADMIN_ROUTES = os.getenv("ENABLE_ADMIN_ROUTES", "false").lower() == "true"
+
     @staticmethod
     def configure_cors(app):
         allowed_websites = os.getenv("ALLOWED_WEBSITES")

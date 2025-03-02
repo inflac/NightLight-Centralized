@@ -6,4 +6,5 @@ SQLAlchemy
 flask-cors
 instagrapi
 pillow
-pytz
+autopep8
+pylint
