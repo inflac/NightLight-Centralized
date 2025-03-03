@@ -25,6 +25,10 @@ class Config:
         "ENABLE_ADMIN_ROUTES",
         "false").lower() == "true"
 
+    # Toggle generating API documentation
+    __generate_api_doc = os.getenv("GENERATE_API_DOCUMENTATION", "false").lower() == "true"
+    API_DOC_PATH = "/docs" if __generate_api_doc else False  # Set / if True, else False
+
     @staticmethod
     def configure_cors(app):
         allowed_websites = os.getenv("ALLOWED_WEBSITES")

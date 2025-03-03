@@ -5,7 +5,10 @@ class ApiKey(db.Model):
     __tablename__ = "api_keys"
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(512), nullable=False, unique=True)
-    nightline_id = db.Column(db.Integer, db.ForeignKey("nightlines.id"), nullable=False)
+    nightline_id = db.Column(
+        db.Integer,
+        db.ForeignKey("nightlines.id"),
+        nullable=False)
 
     nightline = db.relationship("Nightline", back_populates="api_key")
 

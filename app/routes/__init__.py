@@ -1,13 +1,13 @@
-from .public_routes import public_bp
-from .nightline.nightline_routes import nightline_bp
-from .admin.admin_status_routes import admin_status_bp
-from .admin.admin_nightline_routes import admin_nightline_bp
+from .public_routes import public_ns
+from .nightline.nightline_routes import nightline_ns
+from .admin.admin_status_routes import admin_status_ns
+from .admin.admin_nightline_routes import admin_nightline_ns
 from .errors import *
 
-__all__ = ["public_bp",
-           "nightline_bp",
-           "admin_status_bp",
-           "admin_nightline_bp",
+__all__ = ["admin_nightline_ns",
+           "public_ns",
+           "nightline_ns",
+           "admin_status_ns",
            "bad_request_error",
            "not_found_error",
            "internal_error",

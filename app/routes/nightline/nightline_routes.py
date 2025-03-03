@@ -1,39 +1,48 @@
-from flask import Blueprint, jsonify, request
+from flask import request
+from flask_restx import Namespace, Resource, fields
+
+from app.routes.api_models import nightline_status_model, nightline_now_model
 from app.models import Nightline
 
-nightline_bp = Blueprint("nightline", __name__)
+nightline_ns = Namespace(
+    "nightline",
+    description="Routes for nightlines - API Key required")
 
-# Route to update the status of a nightline
-@nightline_bp.route("/<string:name>/status", methods=["PATCH"])
-def update_status(name):
-    """Set the status of a nightline."""
-    nightline = Nightline.get_nightline(name)
+# Define the request model for the update status and now boolean
+nightline_status_model = nightline_ns.model('Nightline Status', nightline_status_model)
 
-    data = request.get_json()
-    if not data or "status" not in data:
-        raise ValueError(f"Status not found in data")
+nightline_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
 
-    nightline.set_status(data["status"])
+@nightline_ns.route("/<string:name>")
+class NightlineStatusResource(Resource):
+    @nightline_ns.expect(nightline_status_model)
+    def patch(self, name):
+        """Set the status of a nightline."""
+        nightline = Nightline.get_nightline(name)
 
-    return jsonify({
-        "status": nightline.status
-    }), 200
+        data = request.get_json()
+        if not data or "status" not in data:
+            return {"message": "Status not found in data"}, 400
 
-# Route to update the 'now' boolean of a nightline
-@nightline_bp.route("/<string:name>/now", methods=["PATCH"])
-def update_now(name):
-    """Update the 'now' boolean of a nightline."""
-    nightline = Nightline.get_nightline(name)
+        nightline.set_status(data["status"])
 
-    data = request.get_json()
-    if not data or "now" not in data:
-        raise ValueError("Missing 'now' field")
+        return {"status": nightline.status}, 200
 
-    if not isinstance(data["now"], bool):
-        raise ValueError("'now' must be a boolean")
+# Resource to update the 'now' boolean of a nightline
+@nightline_ns.route("/<string:name>/now")
+class NightlineNowResource(Resource):
+    @nightline_ns.expect(nightline_now_model)
+    def patch(self, name):
+        """Update the 'now' boolean of a nightline."""
+        nightline = Nightline.get_nightline(name)
 
-    nightline.set_now(data["now"])
+        data = request.get_json()
+        if not data or "now" not in data:
+            return {"message": "Missing 'now' field"}, 400
 
-    return jsonify({
-        "now": nightline.now
-    }), 200
+        if not isinstance(data["now"], bool):
+            return {"message": "'now' must be a boolean"}, 400
+
+        nightline.set_now(data["now"])
+
+        return {"now": nightline.now}, 200

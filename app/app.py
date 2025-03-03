@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, Blueprint
+from flask_restx import Api
 
 from .config import Config
 from .db import db
@@ -21,16 +22,26 @@ def create_app():
         db.create_all()
         preinitialize_statuses()
 
-    # Register public routes
-    app.register_blueprint(public_bp, url_prefix='/public')
-    app.register_blueprint(nightline_bp, url_prefix='/nightline')
+    # Create a single API instance
+    api_bp = Blueprint("api", __name__)
+    api = Api(
+        api_bp,
+        title="NightLight-Centralized API",
+        version="1.0",
+        description="API for managing the availability status of Nightlines",
+        doc=Config.API_DOC_PATH)
 
+    # Register public routes
+    api.add_namespace(public_ns, path="/status")
+    # Register nightline routes
+    api.add_namespace(nightline_ns, path="/status")
     # Conditionally register admin routes
     if Config.ENABLE_ADMIN_ROUTES:
-        app.register_blueprint(admin_status_bp, url_prefix="/admin/status")
-        app.register_blueprint(
-            admin_nightline_bp,
-            url_prefix="/admin/nightline")
+        api.add_namespace(admin_status_ns, path="/admin/status")
+        api.add_namespace(admin_nightline_ns, path="/admin/nightline")
+
+    # Register the API
+    app.register_blueprint(api_bp)
 
     # Global error handlers
     app.register_error_handler(400, bad_request_error)

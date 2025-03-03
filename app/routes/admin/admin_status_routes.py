@@ -1,51 +1,62 @@
-from flask import Blueprint, jsonify, request
+from flask import request
+from flask_restx import Namespace, Resource, fields
+
+from app.routes.api_models import status_model
 from app.models import Status
 
-admin_status_bp = Blueprint('admin_status', __name__)
+admin_status_ns = Namespace(
+    "admin status",
+    description="Admin routes for statuses")
 
-# Route to get a specific status by name
-@admin_status_bp.route('/<name>', methods=['GET'])
-def get_status(name):
-    status = Status.get_status(name)
+# Define the request and response model for the status
+status_model = admin_status_ns.model("Status", status_model)
 
-    return jsonify({
-        "name": status.name,
-        "description_de": status.description_de,
-        "description_en": status.description_en
-    }), 200
+@admin_status_ns.route("/<string:name>")
+class StatusResource(Resource):
+    # Route to get a specific status by name
+    def get(self, name):
+        status = Status.get_status(name)
+        
+        return {
+            "name": status.name,
+            "description_de": status.description_de,
+            "description_en": status.description_en,
+            "description_now_de": status.description_now_de,
+            "description_now_en": status.description_now_en,
+        }, 200
 
-# Route to add a new status
-@admin_status_bp.route('/<string:name>', methods=['POST'])
-def add_status(name):
-    data = request.get_json()
+    # Route to add a new status
+    @admin_status_ns.expect(status_model)
+    @admin_status_ns.marshal_with(status_model)  # Define the response format for success
+    def post(self, name):
+        data = request.get_json()
 
-    # Validate input
-    if not all(key in data for key in ("description_de", "description_en")):
-        raise ValueError("Missing required fields")
+        # Validate input (RESTX validation will be handled with model)
+        description_de = data["description_de"]
+        description_en = data["description_en"]
+        description_now_de = data["description_now_de"]
+        description_now_en = data["description_now_en"]
 
-    description_de = data["description_de"]
-    description_en = data["description_en"]
+        # Call the add_status method from the Status model
+        status = Status.add_status(name, description_de, description_en, description_now_de, description_now_en)
 
-    # Call the add_status method from the Status model
-    status = Status.add_status(name, description_de, description_en)
+        return {
+            "message": "Status created successfully",
+            "name": status.name,
+            "description_de": status.description_de,
+            "description_en": status.description_en,
+            "description_now_de": status.description_now_de,
+            "description_now_en": status.description_now_en,
+        }, 201
 
-    return jsonify({
-        "message": "Status created successfully",
-        "name": status.name,
-        "description_de": status.description_de,
-        "description_en": status.description_en
-    }), 201
-
-# Route to remove a status
-@admin_status_bp.route('/<string:name>', methods=['DELETE'])
-def remove_status(name):
-    Status.remove_status(name)
-
-    return jsonify({"message": f"Status '{name}' removed successfully."}), 200
+    # Route to remove a status
+    def delete(self, name):
+        Status.remove_status(name)
+        return {"message": f"Status '{name}' removed successfully."}, 200
 
 # Route to list all statuses
-@admin_status_bp.route('/statuses', methods=['GET'])
-def list_status():
-    statuses = Status.list_status()
-
-    return jsonify(statuses), 200
+@admin_status_ns.route("/all")
+class StatusListResource(Resource):
+    def get(self):
+        statuses = Status.list_status()
+        return statuses, 200
