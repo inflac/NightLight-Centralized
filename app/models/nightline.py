@@ -24,7 +24,7 @@ class Nightline(db.Model):
         """Query and return a nightline by name."""
         nightline = Nightline.query.filter_by(name=name).first()
         if not nightline:
-            raise ValueError(f"Nightline '{name}' not found.")
+            return None
         return nightline
 
     @classmethod

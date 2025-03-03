@@ -12,8 +12,7 @@ status_model = {
 
 # API model for nightline status
 nightline_status_model = {
-    "name": fields.String(required=True, description="Name of the nightline"),
-    "status": fields.String(required=True, description="Status of the nightline"),
+    "name": fields.String(required=True, description="Name of the status"),
     "description_de": fields.String(required=True, description="German description"),
     "description_en": fields.String(required=True, description="English description"),
     "description_now_de": fields.String(required=True, description="German description for now"),

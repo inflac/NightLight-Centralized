@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, abort
 
 from app.routes.api_models import status_model
 from app.models import Status
@@ -9,25 +9,12 @@ admin_status_ns = Namespace(
     description="Admin routes for statuses")
 
 # Define the request and response model for the status
-status_model = admin_status_ns.model("Status", status_model)
+ad_status_model = admin_status_ns.model("Status", status_model)
 
 @admin_status_ns.route("/<string:name>")
 class StatusResource(Resource):
-    # Route to get a specific status by name
-    def get(self, name):
-        status = Status.get_status(name)
-        
-        return {
-            "name": status.name,
-            "description_de": status.description_de,
-            "description_en": status.description_en,
-            "description_now_de": status.description_now_de,
-            "description_now_en": status.description_now_en,
-        }, 200
-
-    # Route to add a new status
-    @admin_status_ns.expect(status_model)
-    @admin_status_ns.marshal_with(status_model)  # Define the response format for success
+    @admin_status_ns.expect(ad_status_model)
+    @admin_status_ns.marshal_with(ad_status_model)  # Define the response format for success
     def post(self, name):
         data = request.get_json()
 

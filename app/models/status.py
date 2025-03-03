@@ -15,7 +15,7 @@ class Status(db.Model):
         """Query and return a status by name."""
         status = Status.query.filter_by(name=name).first()
         if not status:
-            raise ValueError(f"Status '{name}' not found.")
+            return None
         return status
 
     @classmethod

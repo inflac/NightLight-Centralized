@@ -1,48 +1,68 @@
+import logging
 from flask import request
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, abort
 
 from app.routes.api_models import nightline_status_model, nightline_now_model
 from app.models import Nightline
 
 nightline_ns = Namespace(
     "nightline",
-    description="Routes for nightlines - API Key required")
+    description="Routes for nightlines - API key required")
 
 # Define the request model for the update status and now boolean
-nightline_status_model = nightline_ns.model('Nightline Status', nightline_status_model)
-
-nightline_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
+nl_status_model = nightline_ns.model('Nightline Status', nightline_status_model)
+nl_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
 
 @nightline_ns.route("/<string:name>")
 class NightlineStatusResource(Resource):
-    @nightline_ns.expect(nightline_status_model)
+    @nightline_ns.expect(nl_status_model)
+    @nightline_ns.response(200, "Success", nl_status_model)
+    @nightline_ns.response(400, "Bad Request")
+    @nightline_ns.response(404, "Nightline Not Found")
+    @nightline_ns.marshal_with(nl_status_model)
     def patch(self, name):
         """Set the status of a nightline."""
         nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
 
-        data = request.get_json()
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
         if not data or "status" not in data:
-            return {"message": "Status not found in data"}, 400
+            abort(400, "Missing 'status' field in request.")
 
-        nightline.set_status(data["status"])
+        status_value = data["status"]
+        if not isinstance(status_value, str) or not status_value.strip():
+            abort(400, "'status' must be a non-empty string.")
 
-        return {"status": nightline.status}, 200
+        nightline.set_status(status_value.strip())
 
-# Resource to update the 'now' boolean of a nightline
+        response = {**nightline.status.__dict__, "now": nightline.now}
+        return response, 200
+
 @nightline_ns.route("/<string:name>/now")
 class NightlineNowResource(Resource):
-    @nightline_ns.expect(nightline_now_model)
+    @nightline_ns.expect(nl_now_model)
+    @nightline_ns.response(200, "Success", nl_now_model)
+    @nightline_ns.response(400, "Bad Request")
+    @nightline_ns.response(404, "Nightline Not Found")
+    @nightline_ns.marshal_with(nl_now_model)
     def patch(self, name):
         """Update the 'now' boolean of a nightline."""
+        # Fetch the nightline entry
         nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
 
-        data = request.get_json()
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)  # Ensures JSON parsing doesn't throw an error
         if not data or "now" not in data:
-            return {"message": "Missing 'now' field"}, 400
+            abort(400, "Missing 'now' field in request.")
 
-        if not isinstance(data["now"], bool):
-            return {"message": "'now' must be a boolean"}, 400
+        now_value = data.get("now")
+        if not isinstance(now_value, bool):  # More robust boolean check
+            abort(400, "'now' must be a boolean.")
 
-        nightline.set_now(data["now"])
-
+        # Update and persist the change
+        nightline.set_now(now_value)
         return {"now": nightline.now}, 200
