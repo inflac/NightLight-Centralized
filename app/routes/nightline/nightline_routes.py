@@ -10,7 +10,8 @@ nightline_ns = Namespace(
     description="Routes for nightlines - API key required")
 
 # Define the request model for the update status and now boolean
-nl_status_model = nightline_ns.model('Nightline Status', nightline_status_model)
+nl_status_model = nightline_ns.model(
+    'Nightline Status', nightline_status_model)
 nl_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
 
 @nightline_ns.route("/<string:name>")
@@ -55,7 +56,8 @@ class NightlineNowResource(Resource):
             abort(404, f"Nightline '{name}' not found")
 
         # Parse and validate request body
-        data = request.get_json(force=True, silent=True)  # Ensures JSON parsing doesn't throw an error
+        # Ensures JSON parsing doesn't throw an error
+        data = request.get_json(force=True, silent=True)
         if not data or "now" not in data:
             abort(400, "Missing 'now' field in request.")
 

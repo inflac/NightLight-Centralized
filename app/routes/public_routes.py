@@ -9,9 +9,12 @@ public_ns = Namespace(
     description="Public accessible routes")
 
 # Define the response model for nightline status
-pb_nl_status_model = public_ns.model("Nightline Status", nightline_status_model)
+pb_nl_status_model = public_ns.model(
+    "Nightline Status", nightline_status_model)
 # Define the request model for filtering
-pb_nl_filter_model = public_ns.model("Nightline Status Filter", nightline_filter_model)
+pb_nl_filter_model = public_ns.model(
+    "Nightline Status Filter",
+    nightline_filter_model)
 
 
 @public_ns.route("/<string:name>")
@@ -20,7 +23,7 @@ class PublicNightlineStatusResource(Resource):
     def get(self, name):
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
-        
+
         # Extend the response with `now` field
         response = {**nightline.status.__dict__, "now": nightline.now}
         return response, 200
@@ -52,10 +55,13 @@ class PublicNightlineListResource(Resource):
                     Nightline.status.name.in_(["english", "german-english"]))
 
         if now_filter:
-            query = query.filter(Nightline.now == (now_filter.lower() == "true"))
+            query = query.filter(
+                Nightline.now == (
+                    now_filter.lower() == "true"))
 
         # Fetch the filtered nightlines
         nightlines = query.all()
 
-        response = [{**nightline.status.__dict__, "now": nightline.now} for nightline in nightlines]
+        response = [{**nightline.status.__dict__, "now": nightline.now}
+                    for nightline in nightlines]
         return response, 200

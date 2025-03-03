@@ -14,7 +14,8 @@ ad_status_model = admin_status_ns.model("Status", status_model)
 @admin_status_ns.route("/<string:name>")
 class StatusResource(Resource):
     @admin_status_ns.expect(ad_status_model)
-    @admin_status_ns.marshal_with(ad_status_model)  # Define the response format for success
+    # Define the response format for success
+    @admin_status_ns.marshal_with(ad_status_model)
     def post(self, name):
         data = request.get_json()
 
@@ -25,7 +26,12 @@ class StatusResource(Resource):
         description_now_en = data["description_now_en"]
 
         # Call the add_status method from the Status model
-        status = Status.add_status(name, description_de, description_en, description_now_de, description_now_en)
+        status = Status.add_status(
+            name,
+            description_de,
+            description_en,
+            description_now_de,
+            description_now_en)
 
         return {
             "message": "Status created successfully",

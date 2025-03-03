@@ -26,7 +26,9 @@ class Config:
         "false").lower() == "true"
 
     # Toggle generating API documentation
-    __generate_api_doc = os.getenv("GENERATE_API_DOCUMENTATION", "false").lower() == "true"
+    __generate_api_doc = os.getenv(
+        "GENERATE_API_DOCUMENTATION",
+        "false").lower() == "true"
     API_DOC_PATH = "/docs" if __generate_api_doc else False  # Set / if True, else False
 
     @staticmethod
