@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource
 
 from app.routes.api_models import nightline_filter_model, nightline_status_model
 from app.models import Nightline
@@ -15,7 +15,6 @@ pb_nl_status_model = public_ns.model(
 pb_nl_filter_model = public_ns.model(
     "Nightline Status Filter",
     nightline_filter_model)
-
 
 @public_ns.route("/<string:name>")
 class PublicNightlineStatusResource(Resource):

@@ -6,7 +6,7 @@ from app.models import Status
 
 admin_status_ns = Namespace(
     "admin status",
-    description="Admin routes for statuses")
+    description="Admin routes for statuses - API key required")
 
 # Define the request and response model for the status
 ad_status_model = admin_status_ns.model("Status", status_model)

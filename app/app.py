@@ -32,9 +32,9 @@ def create_app():
         doc=Config.API_DOC_PATH)
 
     # Register public routes
-    api.add_namespace(public_ns, path="/status")
+    api.add_namespace(public_ns, path="/public")
     # Register nightline routes
-    api.add_namespace(nightline_ns, path="/status")
+    api.add_namespace(nightline_ns, path="/nightline")
     # Conditionally register admin routes
     if Config.ENABLE_ADMIN_ROUTES:
         api.add_namespace(admin_status_ns, path="/admin/status")

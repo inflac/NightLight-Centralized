@@ -1,3 +1,5 @@
+from typing import Optional
+
 from ..db import db
 
 
@@ -11,16 +13,14 @@ class Status(db.Model):
     description_now_en = db.Column(db.String(200), nullable=False)
 
     @classmethod
-    def get_status(cls, name: str):
+    def get_status(cls, name: str) -> Optional["Status"]:
         """Query and return a status by name."""
         status = Status.query.filter_by(name=name).first()
-        if not status:
-            return None
         return status
 
     @classmethod
     def add_status(cls, name: str, description_de: str, description_en: str,
-                   description_now_de: str, description_now_en: str):
+                   description_now_de: str, description_now_en: str) -> Optional["Status"]:
         """Add a new status to the db."""
         if Status.query.filter_by(name=name).first():
             raise ValueError(f"Status '{name}' already exists.")
@@ -37,24 +37,25 @@ class Status(db.Model):
             return new_status
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error while adding the status: {str(e)}")
+            return
 
     @classmethod
-    def remove_status(cls, name: str):
+    def remove_status(cls, name: str) -> Optional["Status"]:
         """Remove a status from the db by its name."""
-        status_to_remove = Status.query.filter_by(name=name).first()
+        status_to_remove = Status.get_status(name)
         if not status_to_remove:
-            raise ValueError(f"Status '{name}' does not exist.")
+            return None
 
         try:
             db.session.delete(status_to_remove)
             db.session.commit()
+            return status_to_remove
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error while removing the status: {str(e)}")
+            return None
 
     @classmethod
-    def list_status(cls):
+    def list_status(cls) -> list[dict]:
         """List all available statuses."""
         try:
             statuses = Status.query.all()
@@ -69,5 +70,5 @@ class Status(db.Model):
         except Exception as e:
             raise RuntimeError(f"Error while fetching the statuses: {str(e)}")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Status('{self.name}')"

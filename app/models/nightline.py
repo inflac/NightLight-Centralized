@@ -1,3 +1,5 @@
+from typing import Optional
+
 from ..db import db
 from .status import Status
 from .apikey import ApiKey
@@ -20,21 +22,20 @@ class Nightline(db.Model):
         back_populates="nightline")
 
     @classmethod
-    def get_nightline(cls, name: str):
+    def get_nightline(cls, name: str) -> Optional["Nightline"]:
         """Query and return a nightline by name."""
         nightline = Nightline.query.filter_by(name=name).first()
-        if not nightline:
-            return None
         return nightline
 
     @classmethod
-    def add_nightline(cls, name: str):
+    def add_nightline(cls, name: str) -> Optional["Nightline"]:
         """Create a new nightline with the default status."""
         default_status = Status.get_status("default")
+        if not default_status:
+            return
 
         try:
             new_nightline = cls(name=name, status=default_status)
-
             api_key = ApiKey(key=ApiKey.generate_api_key())
             new_nightline.api_key = api_key
 
@@ -43,50 +44,54 @@ class Nightline(db.Model):
             return new_nightline
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error while adding the nightline: {str(e)}")
+            return
 
     @classmethod
-    def remove_nightline(cls, name: str):
+    def remove_nightline(cls, name: str) -> Optional["Nightline"]:
         """Remove a nightline from the database."""
-        nightline = cls.query.filter_by(name=name).first()
+        nightline = Nightline.get_nightline(name)
         if not nightline:
-            raise ValueError(f"Nightline '{name}' not found.")
+            return
 
         try:
             db.session.delete(nightline)
             db.session.commit()
+            nightline
         except Exception as e:
             db.session.rollback()
-            raise RuntimeError(f"Error while removing the nightline: {str(e)}")
+            return
 
     @classmethod
-    def list_cities(cls):
-        """List all cities."""
+    def list_nightlines(cls) -> list[dict]:
+        """List all nightlines."""
         try:
-            cities = Nightline.query.all()
+            nightlines = Nightline.query.all()
             nightline_list = [{
                 "id": nightline.id,
                 "name": nightline.name,
                 "status": nightline.status,
                 "now": nightline.now,
-            } for nightline in cities]
+            } for nightline in nightlines]
             return nightline_list
         except Exception as e:
             raise RuntimeError(f"Error while fetching the cities: {str(e)}")
 
-    def set_status(self, name: str):
+    def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name."""
         new_status = Status.get_status(name)
+        if not new_status:
+            return
+        
         self.status = new_status
         db.session.commit()
 
-    def reset_status(self):
+        return new_status
+
+    def reset_status(self) -> Status:
         """Reset the status of a nightline to default."""
-        new_status = Status.get_status("default")
-        self.status = new_status
-        db.session.commit()
+        return self.reset_status("default")
 
-    def set_now(self, now: bool):
+    def set_now(self, now: bool) -> None:
         """Set now value of a nightline."""
         self.now = now
         db.session.commit()
@@ -107,5 +112,5 @@ class Nightline(db.Model):
             self.api_key = ApiKey(key=ApiKey.generate_api_key())
         db.session.commit()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Nightline('{self.name}')"

@@ -4,7 +4,7 @@ from app.models import Nightline
 
 admin_nightline_ns = Namespace(
     "admin nightline",
-    description="Admin routes for nightlines")
+    description="Admin routes for nightlines - API key required")
 
 @admin_nightline_ns.route("/<string:name>")
 class NightlineResource(Resource):
