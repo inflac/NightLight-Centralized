@@ -1,4 +1,3 @@
-from flask import jsonify
 from flask_restx import Namespace, Resource
 from app.models import Nightline
 
@@ -11,31 +10,35 @@ class NightlineResource(Resource):
     def get(self, name):
         """Retrieve details of a specific nightline."""
         nightline = Nightline.get_nightline(name)
-        return jsonify({
+        return {
             "name": nightline.name,
             "status": nightline.status.name,
             "instagram_media_id": nightline.instagram_media_id
-        })
+        }, 200
 
     def post(self, name):
         """Add a new nightline with the default status."""
         new_nightline = Nightline.add_nightline(name)
-        return jsonify({
+        return {
             "message": "Nightline added successfully",
             "id": new_nightline.id,
             "name": new_nightline.name,
             "status": new_nightline.status.name
-        }), 201
+        }, 201
 
     def delete(self, name):
         """Remove a nightline by name."""
         Nightline.remove_nightline(name)
-        return jsonify(
-            {"message": f"Nightline '{name}' removed successfully."})
+        return {"message": f"Nightline '{name}' removed successfully."}
 
-@admin_nightline_ns.route("/all")
-class NightlineListResource(Resource):
-    def get(self):
-        """List all nightlines."""
-        cities = Nightline.list_cities()
-        return jsonify(cities)
+@admin_nightline_ns.route("/<string:name>/renew_key")
+class ApiKeyResource(Resource):
+    def patch(self, name):
+        """Renew the API-Key of a nightline"""
+        nightline = Nightline.get_nightline(name)
+        if not nightline:
+            return {"message": f"Nightline '{name}' not found"}, 404
+
+        nightline.renew_api_key()
+
+        return {"message": "API key regenerated successfully"}, 200

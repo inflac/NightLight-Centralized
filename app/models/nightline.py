@@ -18,27 +18,22 @@ class Nightline(db.Model):
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
 
-    api_key = db.relationship(
-        "ApiKey",
-        uselist=False,
-        back_populates="nightline")
-
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
         """Query and return a nightline by name."""
-        logger.debug(f"Fetching nightline by name: {name}")
+        logger.debug(f"Fetching nightline by name: '{name}'")
 
         nightline = cls.query.filter_by(name=name).first()
         if nightline:
-            logger.debug(f"Found nightline: {name}")
+            logger.debug(f"Found nightline: '{name}'")
         else:
-            logger.info(f"Nightline '{name}' not found.")
+            logger.info(f"Nightline '{name}' not found")
         return nightline
 
     @classmethod
     def add_nightline(cls, name: str) -> Optional["Nightline"]:
         """Create a new nightline with the default status."""
-        logger.debug(f"Adding new nightline: {name}")
+        logger.debug(f"Adding new nightline: '{name}'")
 
         default_status = Status.get_status("default")
         if not default_status:
@@ -47,13 +42,16 @@ class Nightline(db.Model):
 
         try:
             new_nightline = cls(name=name, status=default_status)
-            api_key = ApiKey(key=ApiKey.generate_api_key())
-            new_nightline.api_key = api_key
-
             db.session.add(new_nightline)
             db.session.commit()
+            logger.debug(f"Created nightline: '{name}'")
 
-            logger.info(f"Nightline '{name}' added successfully.")
+            new_api_key = ApiKey(key=ApiKey.generate_api_key(), nightline_id=new_nightline.id)
+            db.session.add(new_api_key)
+            db.session.commit()
+            logger.debug(f"Created API-Key for nightline: '{name}'")
+
+            logger.info(f"Nightline '{name}' added successfully")
             return new_nightline
         except Exception as e:
             db.session.rollback()
@@ -67,14 +65,14 @@ class Nightline(db.Model):
 
         nightline = cls.get_nightline(name)
         if not nightline:
-            logger.info(f"Nightline '{name}' not found, nothing to remove.")
+            logger.info(f"Nightline '{name}' not found, nothing to remove")
             return None
 
         try:
             db.session.delete(nightline)
             db.session.commit()
 
-            logger.info(f"Nightline '{name}' removed successfully.")
+            logger.info(f"Nightline '{name}' removed successfully")
             return nightline
         except Exception as e:
             db.session.rollback()
@@ -95,15 +93,15 @@ class Nightline(db.Model):
                 "now": nightline.now,
             } for nightline in nightlines]
 
-            logger.info(f"Listed {len(nightline_list)} nightlines.")
+            logger.info(f"Listed {len(nightline_list)} nightlines")
             return nightline_list
         except Exception as e:
             logger.error(f"Error while fetching the nightlines: {str(e)}")
-            raise RuntimeError(f"Error while fetching the cities: {str(e)}")
+            raise RuntimeError(f"Error while fetching the nightlines: {str(e)}")
 
     def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name."""
-        logger.debug(f"Set status of nightline {self.name} to: {name}.")
+        logger.debug(f"Set status of nightline '{self.name}' to: '{name}'")
 
         new_status = Status.get_status(name)
         if not new_status:
@@ -117,30 +115,33 @@ class Nightline(db.Model):
 
     def reset_status(self) -> Status:
         """Reset the status of a nightline to default."""
-        logger.info(f"Reset the status of nightline: {self.name}.")
+        logger.info(f"Reset the status of nightline: '{self.name}'")
         return self.set_status("default")
 
     def set_now(self, now: bool) -> None:
         """Set now value of a nightline."""
-        logger.info(f"Set the now value of nightline: {self.name} to: {now}")
+        logger.info(f"Set the now value of nightline: '{self.name}' to: '{now}'")
         self.now = now
         db.session.commit()
 
-    def get_api_key(self):
+    def get_api_key(self) -> Optional[ApiKey]:
         """Get the API key."""
-        if self.api_key:
-            return self.api_key.key
-        return None
+        return ApiKey.get_api_key(self.id)
 
-    def renew_api_key(self):
+    def renew_api_key(self) -> bool:
         """Generate and assign a new 256B API key to the nightline."""
-        if self.api_key:
-            # Generate a new key and update the existing record
-            self.api_key.key = ApiKey.generate_api_key()
-        else:
-            # If no API key exists, create a new one
-            self.api_key = ApiKey(key=ApiKey.generate_api_key())
-        db.session.commit()
+        logger.debug(f"Renew api key of nightline: '{self.name}'")
+
+        api_key =  ApiKey.get_api_key(self.id)
+        if api_key:
+            api_key.key = ApiKey.generate_api_key()
+            db.session.commit()
+
+            logger.info(f"Api key for nightline '{self.name}' renewed successfully")
+            return True
+        
+        logger.error(f"No api key found for nightline: '{self.name}'")
+        return False
 
     def __repr__(self) -> str:
         return f"Nightline('{self.name}')"
