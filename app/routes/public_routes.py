@@ -13,24 +13,31 @@ public_ns = Namespace(
 
 # Define the response model for nightline status
 pb_error_model = public_ns.model("Error", error_model)
-pb_nl_status_model = public_ns.model(
+pb_nightline_status_model = public_ns.model(
     "Nightline Status", nightline_status_model)
 
 @public_ns.route("/<string:name>")
 class PublicNightlineStatusResource(Resource):
     @sanitize_name
-    @public_ns.response(200, "Success", pb_nl_status_model)
+    @public_ns.response(200, "Success", pb_nightline_status_model)
+    # Can be returend by sanitize_name
     @public_ns.response(400, "Bad Request", pb_error_model)
     @public_ns.response(404, "Nightline Not Found", pb_error_model)
-    @public_ns.marshal_with(pb_nl_status_model)
     def get(self, name):
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, message=f"Nightline '{name}' not found")
 
-        # Extend the response with `now` field
-        response = {**nightline.status.__dict__, "now": nightline.now}
+        response = {
+            'nightline_name': nightline.name,
+            'status_name': nightline.status.name,
+            'description_de': nightline.status.description_de,
+            'description_en': nightline.status.description_en,
+            'description_now_de': nightline.status.description_now_de,
+            'description_now_en': nightline.status.description_now_en,
+            'now': nightline.now,
+        }
         return response, 200
 
 # Resource to get the statuses of all nightlines with filter options
@@ -41,8 +48,8 @@ class PublicNightlineListResource(Resource):
     @public_ns.param("language",
                      "Language filter for to only include nightlines speaking a certain language. Optional.")
     @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional.")
+    @public_ns.response(200, "Success", [pb_nightline_status_model])
     @public_ns.response(400, "Bad Request", pb_error_model)
-    @public_ns.marshal_with(pb_nl_status_model, as_list=True)
     def get(self):
         """Retrieve the statuses of all nightlines with filter options"""
         status_filter = request.args.get("status")
@@ -82,9 +89,16 @@ class PublicNightlineListResource(Resource):
             query = query.filter(
                 Nightline.now == (now_filter.lower() == "true"))
 
-        # Execute query and return results
+        # Fetch nightlines that match filter criteria
         nightlines = query.all()
 
-        response = [{**nightline.status.__dict__, "now": nightline.now}
-                    for nightline in nightlines]
+        response = [{
+            'nightline_name': nightline.name,
+            'status_name': nightline.status.name,
+            'description_de': nightline.status.description_de,
+            'description_en': nightline.status.description_en,
+            'description_now_de': nightline.status.description_now_de,
+            'description_now_en': nightline.status.description_now_en,
+            'now': nightline.now,
+        } for nightline in nightlines]
         return response, 200

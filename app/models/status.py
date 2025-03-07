@@ -80,16 +80,9 @@ class Status(db.Model):
 
         try:
             statuses = Status.query.all()
-            status_list = [{
-                "name": status.name,
-                "description_de": status.description_de,
-                "description_en": status.description_en,
-                "description_now_de": status.description_now_de,
-                "description_now_en": status.description_now_en,
-            } for status in statuses]
 
-            logger.info(f"Listed {len(status_list)} statuses.")
-            return status_list
+            logger.info(f"Listed {len(statuses)} statuses.")
+            return statuses
         except Exception as e:
             logger.error(f"Error while fetching the statuses: {str(e)}")
             raise RuntimeError(f"Error while fetching the statuses: {str(e)}")

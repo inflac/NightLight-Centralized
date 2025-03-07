@@ -83,21 +83,15 @@ class Nightline(db.Model):
             return None
 
     @classmethod
-    def list_nightlines(cls) -> list[dict]:
+    def list_nightlines(cls) -> list["Nightline"]:
         """List all nightlines."""
         logger.debug("Listing all nightlines.")
 
         try:
             nightlines = cls.query.all()
-            nightline_list = [{
-                "id": nightline.id,
-                "name": nightline.name,
-                "status": nightline.status,
-                "now": nightline.now,
-            } for nightline in nightlines]
 
-            logger.info(f"Listed {len(nightline_list)} nightlines")
-            return nightline_list
+            logger.info(f"Listed {len(nightlines)} nightlines")
+            return nightlines
         except Exception as e:
             logger.error(f"Error while fetching the nightlines: {str(e)}")
             raise RuntimeError(

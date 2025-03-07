@@ -1,6 +1,5 @@
 # Todos
-* add and update marshal_with in every route
-  * fix models and unify responses
+* restructure /all route. Place filter logic in list_nightlines
 * add table for nl status settings
   * integrate instagram story posts
 * Add authentication for routes
