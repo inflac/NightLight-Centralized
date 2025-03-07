@@ -5,22 +5,23 @@ import logging
 from dotenv import load_dotenv
 from flask_cors import CORS
 
+from .logger import create_logger
 
-# General Configuration
-load_dotenv()  # Load environment variables from .env file
+# Load environment variables from .env file
+load_dotenv()
 
-# Configuration class
 class Config:
     """Base config class for the application."""
+    # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", "sqlite:///nightlight.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # HOST and PORT from .env or default values
+    # General
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 5000))
 
-    # Admin routes enabled from .env. False by default
+    # Admin routes
     ENABLE_ADMIN_ROUTES = os.getenv(
         "ENABLE_ADMIN_ROUTES",
         "false").lower() == "true"
@@ -31,9 +32,13 @@ class Config:
         "false").lower() == "true"
     API_DOC_PATH = "/docs" if __generate_api_doc else False  # Set / if True, else False
 
-    @staticmethod
-    def configure_cors(app):
-        allowed_websites = os.getenv("ALLOWED_WEBSITES")
+    # CORS
+    CORS_ALLOWED_WEBSITES = os.getenv("CORS_ALLOWED_WEBSITES", "")
+
+    @classmethod
+    def configure_cors(cls, app):
+        """Configure CORS (Websites allowed to access the API)"""
+        allowed_websites = cls.CORS_ALLOWED_WEBSITES
         if allowed_websites == "*":
             origins = "*"
         elif isinstance(allowed_websites, str):
@@ -44,6 +49,11 @@ class Config:
         CORS(app, origins=origins)
 
     @staticmethod
-    def configure_logging():
-        """Sets up basic logging configuration."""
-        logging.basicConfig(level=logging.DEBUG)
+    def configure_logging() -> logging.Logger:
+        """Configure and create a logger"""
+        LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+        LOG_TO_FILE = os.getenv("LOG_TO_FILE", "false").lower() == "true"
+        FILE_LOG_FORMAT = "" if os.getenv(
+            "FILE_LOG_FORMAT", "") != "json" else "json"
+
+        return create_logger(LOG_TO_FILE, FILE_LOG_FORMAT, LOG_LEVEL)

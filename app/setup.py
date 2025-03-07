@@ -1,9 +1,10 @@
-from flask import Flask
+from sqlalchemy.exc import SQLAlchemyError
 
 from .db import db
 from .models import Status
 
 def preinitialize_statuses():
+    from .logger import logger
     """Pre-initialize default statuses if they don't exist."""
     default_statuses = [
         {"name": "default",
@@ -38,18 +39,24 @@ def preinitialize_statuses():
          "description_now_en": "Due to technical issues, we're currently unavailable ⚠️"}
     ]
 
-    # TODO add try/except
-    for status_data in default_statuses:
-        existing_status = Status.query.filter_by(
-            name=status_data["name"]).first()
-        if not existing_status:
-            new_status = Status(
-                name=status_data["name"],
-                description_de=status_data["description_de"],
-                description_en=status_data["description_en"],
-                description_now_de=status_data["description_now_de"],
-                description_now_en=status_data["description_now_en"]
-            )
-            db.session.add(new_status)
+    try:
+        for status_data in default_statuses:
+            existing_status = Status.query.filter_by(
+                name=status_data["name"]).first()
+            if not existing_status:
+                new_status = Status(
+                    name=status_data["name"],
+                    description_de=status_data["description_de"],
+                    description_en=status_data["description_en"],
+                    description_now_de=status_data["description_now_de"],
+                    description_now_en=status_data["description_now_en"]
+                )
+                db.session.add(new_status)
+                logger.debug(f"Created status: {status_data["name"]}")
 
-    db.session.commit()
+        db.session.commit()
+        logger.info("Initilized statuses")
+
+    except SQLAlchemyError as db_err:
+        db.session.rollback()
+        logger.error(f"Error while initializing statuses: {db_err}")

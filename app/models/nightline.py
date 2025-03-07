@@ -3,6 +3,8 @@ from typing import Optional
 from ..db import db
 from .status import Status
 from .apikey import ApiKey
+from app.logger import logger
+
 
 class Nightline(db.Model):
     __tablename__ = "nightlines"
@@ -24,15 +26,24 @@ class Nightline(db.Model):
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
         """Query and return a nightline by name."""
-        nightline = Nightline.query.filter_by(name=name).first()
+        logger.debug(f"Fetching nightline by name: {name}")
+
+        nightline = cls.query.filter_by(name=name).first()
+        if nightline:
+            logger.debug(f"Found nightline: {name}")
+        else:
+            logger.info(f"Nightline '{name}' not found.")
         return nightline
 
     @classmethod
     def add_nightline(cls, name: str) -> Optional["Nightline"]:
         """Create a new nightline with the default status."""
+        logger.debug(f"Adding new nightline: {name}")
+
         default_status = Status.get_status("default")
         if not default_status:
-            return
+            logger.error(f"Nightline was not added because the default status is missing.")
+            return None
 
         try:
             new_nightline = cls(name=name, status=default_status)
@@ -41,58 +52,77 @@ class Nightline(db.Model):
 
             db.session.add(new_nightline)
             db.session.commit()
+
+            logger.info(f"Nightline '{name}' added successfully.")
             return new_nightline
         except Exception as e:
             db.session.rollback()
-            return
+            logger.error(f"Error adding nightline '{name}': {str(e)}")
+            return None
 
     @classmethod
     def remove_nightline(cls, name: str) -> Optional["Nightline"]:
         """Remove a nightline from the database."""
-        nightline = Nightline.get_nightline(name)
+        logger.debug(f"Removing nightline: {name}")
+
+        nightline = cls.get_nightline(name)
         if not nightline:
-            return
+            logger.info(f"Nightline '{name}' not found, nothing to remove.")
+            return None
 
         try:
             db.session.delete(nightline)
             db.session.commit()
-            nightline
+
+            logger.info(f"Nightline '{name}' removed successfully.")
+            return nightline
         except Exception as e:
             db.session.rollback()
-            return
+            logger.error(f"Error removing nightline '{name}': {str(e)}")
+            return None
 
     @classmethod
     def list_nightlines(cls) -> list[dict]:
         """List all nightlines."""
+        logger.debug("Listing all nightlines.")
+
         try:
-            nightlines = Nightline.query.all()
+            nightlines = cls.query.all()
             nightline_list = [{
                 "id": nightline.id,
                 "name": nightline.name,
                 "status": nightline.status,
                 "now": nightline.now,
             } for nightline in nightlines]
+
+            logger.info(f"Listed {len(nightline_list)} nightlines.")
             return nightline_list
         except Exception as e:
+            logger.error(f"Error while fetching the nightlines: {str(e)}")
             raise RuntimeError(f"Error while fetching the cities: {str(e)}")
 
     def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name."""
+        logger.debug(f"Set status of nightline {self.name} to: {name}.")
+
         new_status = Status.get_status(name)
         if not new_status:
-            return
-        
+            return None
+
         self.status = new_status
         db.session.commit()
 
+        logger.info(f"Status '{name}' set successfully.")
         return new_status
 
     def reset_status(self) -> Status:
         """Reset the status of a nightline to default."""
-        return self.reset_status("default")
+        logger.info(f"Reset the status of nightline: {self.name}.")
+        return self.set_status("default")
 
     def set_now(self, now: bool) -> None:
         """Set now value of a nightline."""
+        logger.info(f"Set the now value of nightline: {self.name} to: {now}")
         self.now = now
         db.session.commit()
 
