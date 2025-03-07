@@ -19,6 +19,7 @@ class Nightline(db.Model):
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
 
+
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
         """Query and return a nightline by name"""
@@ -72,7 +73,16 @@ class Nightline(db.Model):
             logger.info(f"Nightline '{name}' not found, nothing to remove")
             return None
 
+        api_key = ApiKey.get_api_key(nightline.id)
+        if not api_key:
+            logger.info(f"Api key for nightline '{name}' not found, can't remove the nightline")
+            return None
+
         try:
+            db.session.delete(api_key)
+            db.session.commit()
+            logger.debug(f"Removed api key for nightline: '{name}'")
+
             db.session.delete(nightline)
             db.session.commit()
 
