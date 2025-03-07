@@ -8,7 +8,7 @@ def sanitize_name(f):
         # Sanitize the name
         sanitized_name = name.strip().lower()
 
-        if not sanitized_name.isalnum():
+        if not sanitized_name.isalnum() or len(sanitize_name) > 15:
             logger.debug(f"Route was called with an invalid name: '{name}'")
             return {"message": "Invalid name format"}, 400
 
