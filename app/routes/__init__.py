@@ -8,10 +8,7 @@ __all__ = ["admin_nightline_ns",
            "public_ns",
            "nightline_ns",
            "admin_status_ns",
-           "bad_request_error",
-           "not_found_error",
            "internal_error",
-           "handle_value_error",
            "handle_runtime_error",
            "handle_generic_error"
            ]
