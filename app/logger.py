@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-logger = None
+logger = logging.getLogger('nightlight')
 
 VALID_LOG_LEVELS = [
     "DEBUG",
@@ -81,9 +81,6 @@ def create_logger(log_to_file: bool, file_log_format: str, log_level: str) -> lo
     if log_to_file:
         file_handler = "file_json" if file_log_format == "json" else "file"
         LOGGING_CONFIG["loggers"]["nightlight"]["handlers"].append(file_handler)
-
-    if file_log_format == "json":
-        print(LOGGING_CONFIG["formatters"])
 
     # Apply the logging configuration
     logging.config.dictConfig(LOGGING_CONFIG)
