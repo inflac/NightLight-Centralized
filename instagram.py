@@ -87,7 +87,7 @@ def post_story(image_path: os.PathLike):
         resp = cl.photo_upload_to_story(image_path)
         media_id = resp.pk
         logger.info(
-            f"Story {image_path} with ID: {media_id}, posted successfully.")
+            f"Story {image_path} with ID: {media_id}, posted successfully")
         return media_id
     except Exception as e:
         logger.error(f"Failed to post story: {e}")
@@ -104,7 +104,7 @@ def delete_story_by_id(media_id: str) -> bool:
 
     try:
         cl.media_delete(media_id)
-        logger.info(f"Story with ID {media_id} deleted successfully.")
+        logger.info(f"Story with ID {media_id} deleted successfully")
         return True
     except Exception as e:
         logger.error(f"Failed to delete story with ID {media_id}: {e}")

@@ -32,7 +32,7 @@ nightline_status_model = {
     "description_en": fields.String(required=True, description="English description"),
     "description_now_de": fields.String(required=True, description="German description for now"),
     "description_now_en": fields.String(required=True, description="English description for now"),
-    "now": fields.Boolean(required=True, description="Indicates whether the shift is currently active."),
+    "now": fields.Boolean(required=True, description="Indicates whether the shift is currently active"),
 }
 
 admin_nightline_model = {

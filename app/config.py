@@ -11,7 +11,7 @@ from .logger import create_logger
 load_dotenv()
 
 class Config:
-    """Base config class for the application."""
+    """Base config class for the application"""
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", "sqlite:///nightlight.db")

@@ -15,25 +15,25 @@ class Status(db.Model):
 
     @classmethod
     def get_status(cls, name: str) -> Optional["Status"]:
-        """Query and return a status by name."""
+        """Query and return a status by name"""
         logger.debug(f"Fetching status by name: {name}")
 
         status = cls.query.filter_by(name=name).first()
         if status:
             logger.debug(f"Found status: {name}")
         else:
-            logger.info(f"Status '{name}' not found.")
+            logger.info(f"Status '{name}' not found")
         return status
 
     @classmethod
     def add_status(cls, name: str, description_de: str, description_en: str,
                    description_now_de: str, description_now_en: str) -> Optional["Status"]:
-        """Add a new status to the db."""
+        """Add a new status to the db"""
         logger.debug(f"Adding new status: {name}")
 
         if cls.query.filter_by(name=name).first():
-            logger.error(f"Status '{name}' already exists.")
-            raise ValueError(f"Status '{name}' already exists.")
+            logger.error(f"Status '{name}' already exists")
+            return None
 
         try:
             new_status = Status(
@@ -45,7 +45,7 @@ class Status(db.Model):
             db.session.add(new_status)
             db.session.commit()
 
-            logger.info(f"Status '{name}' added successfully.")
+            logger.info(f"Status '{name}' added successfully")
             return new_status
         except Exception as e:
             db.session.rollback()
@@ -54,19 +54,19 @@ class Status(db.Model):
 
     @classmethod
     def remove_status(cls, name: str) -> Optional["Status"]:
-        """Remove a status from the db by its name."""
+        """Remove a status from the db by its name"""
         logger.debug(f"Removing status: {name}")
 
         status_to_remove = Status.get_status(name)
         if not status_to_remove:
-            logger.info(f"Status '{name}' not found, nothing to remove.")
+            logger.info(f"Status '{name}' not found, nothing to remove")
             return None
 
         try:
             db.session.delete(status_to_remove)
             db.session.commit()
 
-            logger.info(f"Status '{name}' removed successfully.")
+            logger.info(f"Status '{name}' removed successfully")
             return status_to_remove
         except Exception as e:
             db.session.rollback()
@@ -75,13 +75,13 @@ class Status(db.Model):
 
     @classmethod
     def list_status(cls) -> list[dict]:
-        """List all available statuses."""
-        logger.debug("Listing all statuses.")
+        """List all available statuses"""
+        logger.debug("Listing all statuses")
 
         try:
             statuses = Status.query.all()
 
-            logger.info(f"Listed {len(statuses)} statuses.")
+            logger.info(f"Listed {len(statuses)} statuses")
             return statuses
         except Exception as e:
             logger.error(f"Error while fetching the statuses: {str(e)}")

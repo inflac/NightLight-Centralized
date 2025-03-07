@@ -72,7 +72,7 @@ LOGGING_CONFIG = {
 
 def create_logger(log_to_file: bool, file_log_format: str,
                   log_level: str) -> logging.Logger:
-    """Creates a logger with an optional file handler."""
+    """Creates a logger with an optional file handler"""
     global logger
 
     if log_level not in VALID_LOG_LEVELS:

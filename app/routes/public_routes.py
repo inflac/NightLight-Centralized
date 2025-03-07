@@ -1,6 +1,5 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
-from sqlalchemy import or_
 
 from app.routes.api_models import error_model, nightline_status_model
 from app.models import Nightline, Status
@@ -44,10 +43,10 @@ class PublicNightlineStatusResource(Resource):
 @public_ns.route("/all")
 class PublicNightlineListResource(Resource):
     @public_ns.param("status",
-                     "Filter for the current status (e.g., 'default' or 'german-english'). Optional.")
+                     "Filter for the current status (e.g., 'default' or 'german-english'). Optional")
     @public_ns.param("language",
-                     "Language filter for to only include nightlines speaking a certain language. Optional.")
-    @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional.")
+                     "Language filter for to only include nightlines speaking a certain language. Optional")
+    @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional")
     @public_ns.response(200, "Success", [pb_nightline_status_model])
     @public_ns.response(400, "Bad Request", pb_error_model)
     def get(self):
@@ -56,41 +55,33 @@ class PublicNightlineListResource(Resource):
         language_filter = request.args.get("language")
         now_filter = request.args.get("now")
 
-        query = Nightline.query
-        query = query.join(Status, Nightline.status)
+        # Validate status filter
+        if status_filter and (not isinstance(status_filter, str) or len(
+                status_filter) > 15 or not status_filter.isalnum()):
+            abort(
+                400,
+                message=f"Invalid value for status filter. Only valid status names are allowed")
 
-        # Apply filters
-        if status_filter:
-            query = query.filter(Nightline.status.has(name=status_filter))
+        # Validate language filter
+        if language_filter and language_filter not in ["en", "de"]:
+            abort(
+                400,
+                message=f"Invalid value for language filter. Only 'en' or 'de' are allowed")
 
-        if language_filter:
-            # Use 'or_' to combine conditions for multiple possible values of
-            # status.name
-            if language_filter == "de":
-                query = query.filter(
-                    or_(
-                        Status.name == "german",
-                        Status.name == "german-english"
-                    )
-                )
-            elif language_filter == "en":
-                query = query.filter(
-                    or_(
-                        Status.name == "english",
-                        Status.name == "german-english"
-                    )
-                )
+        # Validate now filter
+        if now_filter is not None:
+            if now_filter in ["true", "false"]:
+                now_filter = now_filter.lower() == "true"
             else:
                 abort(
-                    400,
-                    f"Invalid language filter value: {language_filter}. Only 'en' and 'de' are allowed.")
+                    400, message="Invalid value for 'now' filter. Use 'true' or 'false'")
 
-        if now_filter:
-            query = query.filter(
-                Nightline.now == (now_filter.lower() == "true"))
-
-        # Fetch nightlines that match filter criteria
-        nightlines = query.all()
+        # Fetch filtered nightlines
+        nightlines = Nightline.list_nightlines(
+            status_filter=status_filter,
+            language_filter=language_filter,
+            now_filter=now_filter
+        )
 
         response = [{
             'nightline_name': nightline.name,

@@ -11,7 +11,8 @@ admin_nightline_ns = Namespace(
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 ad_nl_success_model = admin_nightline_ns.model("Success", success_model)
-ad_nl_admin_nightline_model = admin_nightline_ns.model("Admin Nightline", admin_nightline_model)
+ad_nl_admin_nightline_model = admin_nightline_ns.model(
+    "Admin Nightline", admin_nightline_model)
 
 
 @admin_nightline_ns.route("/<string:name>")
@@ -21,7 +22,7 @@ class NightlineResource(Resource):
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
     def get(self, name):
-        """Retrieve details of a specific nightline."""
+        """Retrieve details of a specific nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
@@ -39,10 +40,12 @@ class NightlineResource(Resource):
     @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     def post(self, name):
-        """Add a new nightline with the default status."""
+        """Add a new nightline with the default status"""
         nightline = Nightline.add_nightline(name)
         if not nightline:
-            abort(400, message=f"Nightline '{name}' could not be added due to invalid data or duplication")
+            abort(
+                400,
+                message=f"Nightline '{name}' could not be added due to invalid data or duplication")
 
         response = {"message": f"Nightline '{name}' added successfully"}
         return response, 200
@@ -51,7 +54,7 @@ class NightlineResource(Resource):
     @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     def delete(self, name):
-        """Remove a nightline by name."""
+        """Remove a nightline by name"""
         nightline = Nightline.remove_nightline(name)
         if not nightline:
             abort(400, f"Nightline '{name}' could not be removed")
@@ -63,7 +66,8 @@ class NightlineResource(Resource):
 class ApiKeyResource(Resource):
     @sanitize_name
     @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model) # Can be returend by sanitize_name
+    # Can be returend by sanitize_name
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
     @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
     def patch(self, name):

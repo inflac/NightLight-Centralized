@@ -18,7 +18,7 @@ class ApiKey(db.Model):
 
     @staticmethod
     def generate_api_key(length: int = 256):
-        """Generate a random API key."""
+        """Generate a random API key"""
         logger.debug(f"Generating api key of length: '{length}'")
         return secrets.token_urlsafe(length)
 

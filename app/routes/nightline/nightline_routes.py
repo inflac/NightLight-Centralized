@@ -23,15 +23,15 @@ class NightlineStatusResource(Resource):
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     def patch(self, name):
-        """Set the status of a nightline."""
+        """Set the status of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
         if not data or "status" not in data:
-            abort(400, "Missing 'status' field in request.")
+            abort(400, "Missing 'status' field in request")
 
         status_value = data["status"]
         if not isinstance(status_value, str) or not status_value.strip():
-            abort(400, "'status' must be a non-empty string.")
+            abort(400, "'status' must be a non-empty string")
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
@@ -58,7 +58,7 @@ class NightlineNowResource(Resource):
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     def patch(self, name):
-        """Update the 'now' boolean of a nightline."""
+        """Update the 'now' boolean of a nightline"""
         # Fetch the nightline entry
         nightline = Nightline.get_nightline(name)
         if not nightline:
@@ -68,11 +68,11 @@ class NightlineNowResource(Resource):
         # Ensures JSON parsing doesn't throw an error
         data = request.get_json(force=True, silent=True)
         if not data or "now" not in data:
-            abort(400, "Missing 'now' field in request.")
+            abort(400, "Missing 'now' field in request")
 
         now_value = data.get("now")
         if not isinstance(now_value, bool):  # More robust boolean check
-            abort(400, "'now' must be a boolean.")
+            abort(400, "'now' must be a boolean")
 
         # Update and persist the change
         nightline.set_now(now_value)

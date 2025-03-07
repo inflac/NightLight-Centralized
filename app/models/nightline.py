@@ -1,4 +1,5 @@
 from typing import Optional
+from sqlalchemy import or_
 
 from ..db import db
 from .status import Status
@@ -20,7 +21,7 @@ class Nightline(db.Model):
 
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
-        """Query and return a nightline by name."""
+        """Query and return a nightline by name"""
         logger.debug(f"Fetching nightline by name: '{name}'")
 
         nightline = cls.query.filter_by(name=name).first()
@@ -32,13 +33,13 @@ class Nightline(db.Model):
 
     @classmethod
     def add_nightline(cls, name: str) -> Optional["Nightline"]:
-        """Create a new nightline with the default status."""
+        """Create a new nightline with the default status"""
         logger.debug(f"Adding new nightline: '{name}'")
 
         default_status = Status.get_status("default")
         if not default_status:
             logger.error(
-                f"Nightline was not added because the default status is missing.")
+                f"Nightline was not added because the default status is missing")
             return None
 
         try:
@@ -63,7 +64,7 @@ class Nightline(db.Model):
 
     @classmethod
     def remove_nightline(cls, name: str) -> Optional["Nightline"]:
-        """Remove a nightline from the database."""
+        """Remove a nightline from the database"""
         logger.debug(f"Removing nightline: {name}")
 
         nightline = cls.get_nightline(name)
@@ -83,15 +84,43 @@ class Nightline(db.Model):
             return None
 
     @classmethod
-    def list_nightlines(cls) -> list["Nightline"]:
-        """List all nightlines."""
-        logger.debug("Listing all nightlines.")
+    def list_nightlines(cls, status_filter: str = None, language_filter: str = None,
+                        now_filter: bool = None) -> list["Nightline"]:
+        """List all nightlines with optional filters"""
+        logger.debug("Listing all nightlines with filters")
 
         try:
-            nightlines = cls.query.all()
+            query = cls.query.join(Status, Nightline.status)
+
+            # Apply filters if provided
+            if status_filter:
+                query = query.filter(Nightline.status.has(name=status_filter))
+
+            if language_filter:
+                if language_filter == "de":
+                    query = query.filter(
+                        or_(
+                            Status.name == "german",
+                            Status.name == "german-english"
+                        )
+                    )
+                elif language_filter == "en":
+                    query = query.filter(
+                        or_(
+                            Status.name == "english",
+                            Status.name == "german-english"
+                        )
+                    )
+
+            if isinstance(now_filter, bool):
+                query = query.filter(Nightline.now == now_filter)
+
+            # Fetch nightlines that match filter criteria
+            nightlines = query.all()
 
             logger.info(f"Listed {len(nightlines)} nightlines")
             return nightlines
+
         except Exception as e:
             logger.error(f"Error while fetching the nightlines: {str(e)}")
             raise RuntimeError(
@@ -99,7 +128,7 @@ class Nightline(db.Model):
                     str(e)}")
 
     def set_status(self, name: str) -> Optional[Status]:
-        """Set the status of a nightline by the status name."""
+        """Set the status of a nightline by the status name"""
         logger.debug(f"Set status of nightline '{self.name}' to: '{name}'")
 
         new_status = Status.get_status(name)
@@ -109,16 +138,16 @@ class Nightline(db.Model):
         self.status = new_status
         db.session.commit()
 
-        logger.info(f"Status '{name}' set successfully.")
+        logger.info(f"Status '{name}' set successfully")
         return new_status
 
     def reset_status(self) -> Status:
-        """Reset the status of a nightline to default."""
+        """Reset the status of a nightline to default"""
         logger.info(f"Reset the status of nightline: '{self.name}'")
         return self.set_status("default")
 
     def set_now(self, now: bool) -> None:
-        """Set now value of a nightline."""
+        """Set now value of a nightline"""
         logger.info(
             f"Set the now value of nightline: '{
                 self.name}' to: '{now}'")
@@ -126,11 +155,11 @@ class Nightline(db.Model):
         db.session.commit()
 
     def get_api_key(self) -> Optional[ApiKey]:
-        """Get the API key."""
+        """Get the API key"""
         return ApiKey.get_api_key(self.id)
 
     def renew_api_key(self) -> bool:
-        """Generate and assign a new 256B API key to the nightline."""
+        """Generate and assign a new 256B API key to the nightline"""
         logger.debug(f"Renew api key of nightline: '{self.name}'")
 
         api_key = ApiKey.get_api_key(self.id)

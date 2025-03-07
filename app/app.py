@@ -15,10 +15,10 @@ def create_app():
 
     # Configure CORS
     Config.configure_cors(app)
-    logger.info("CORS configuration applied.")
+    logger.info("CORS configuration applied")
 
     db.init_app(app)
-    logger.info("Database initialized.")
+    logger.info("Database initialized")
 
     with app.app_context():
         db.create_all()
@@ -37,17 +37,17 @@ def create_app():
     api.add_namespace(public_ns, path="/public")
     # Register nightline routes
     api.add_namespace(nightline_ns, path="/nightline")
-    logger.info("Core namespaces added.")
+    logger.info("Core namespaces added")
 
     # Conditionally register admin routes
     if Config.ENABLE_ADMIN_ROUTES:
         api.add_namespace(admin_status_ns, path="/admin/status")
         api.add_namespace(admin_nightline_ns, path="/admin/nightline")
-        logger.info("Admin namespace added.")
+        logger.info("Admin namespace added")
 
     # Register the API
     app.register_blueprint(api_bp)
-    logger.info("API blueprint registered.")
+    logger.info("API blueprint registered")
 
     # Global error handlers
     app.register_error_handler(400, bad_request_error)
@@ -56,6 +56,6 @@ def create_app():
     app.register_error_handler(ValueError, handle_value_error)
     app.register_error_handler(RuntimeError, handle_runtime_error)
     app.register_error_handler(Exception, handle_generic_error)
-    logger.info("Global error handlers registered.")
+    logger.info("Global error handlers registered")
 
     return app

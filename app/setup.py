@@ -5,7 +5,7 @@ from .models import Status
 
 def preinitialize_statuses():
     from .logger import logger
-    """Pre-initialize default statuses if they don't exist."""
+    """Pre-initialize default statuses if they don't exist"""
     default_statuses = [
         {"name": "default",
          "description_de": "",
