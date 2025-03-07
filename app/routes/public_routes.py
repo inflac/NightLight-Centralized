@@ -36,8 +36,10 @@ class PublicNightlineStatusResource(Resource):
 # Resource to get the statuses of all nightlines with filter options
 @public_ns.route("/all")
 class PublicNightlineListResource(Resource):
-    @public_ns.param("status", "Filter for the current status (e.g., 'default' or 'german-english'). Optional.")
-    @public_ns.param("language", "Language filter for to only include nightlines speaking a certain language. Optional.")
+    @public_ns.param("status",
+                     "Filter for the current status (e.g., 'default' or 'german-english'). Optional.")
+    @public_ns.param("language",
+                     "Language filter for to only include nightlines speaking a certain language. Optional.")
     @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional.")
     @public_ns.response(400, "Bad Request", pb_error_model)
     @public_ns.marshal_with(pb_nl_status_model, as_list=True)
@@ -55,7 +57,8 @@ class PublicNightlineListResource(Resource):
             query = query.filter(Nightline.status.has(name=status_filter))
 
         if language_filter:
-            # Use 'or_' to combine conditions for multiple possible values of status.name
+            # Use 'or_' to combine conditions for multiple possible values of
+            # status.name
             if language_filter == "de":
                 query = query.filter(
                     or_(
@@ -71,7 +74,9 @@ class PublicNightlineListResource(Resource):
                     )
                 )
             else:
-                abort(400, f"Invalid language filter value: {language_filter}. Only 'en' and 'de' are allowed.")
+                abort(
+                    400,
+                    f"Invalid language filter value: {language_filter}. Only 'en' and 'de' are allowed.")
 
         if now_filter:
             query = query.filter(

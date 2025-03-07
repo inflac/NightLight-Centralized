@@ -37,7 +37,8 @@ class Nightline(db.Model):
 
         default_status = Status.get_status("default")
         if not default_status:
-            logger.error(f"Nightline was not added because the default status is missing.")
+            logger.error(
+                f"Nightline was not added because the default status is missing.")
             return None
 
         try:
@@ -46,7 +47,9 @@ class Nightline(db.Model):
             db.session.commit()
             logger.debug(f"Created nightline: '{name}'")
 
-            new_api_key = ApiKey(key=ApiKey.generate_api_key(), nightline_id=new_nightline.id)
+            new_api_key = ApiKey(
+                key=ApiKey.generate_api_key(),
+                nightline_id=new_nightline.id)
             db.session.add(new_api_key)
             db.session.commit()
             logger.debug(f"Created API-Key for nightline: '{name}'")
@@ -97,7 +100,9 @@ class Nightline(db.Model):
             return nightline_list
         except Exception as e:
             logger.error(f"Error while fetching the nightlines: {str(e)}")
-            raise RuntimeError(f"Error while fetching the nightlines: {str(e)}")
+            raise RuntimeError(
+                f"Error while fetching the nightlines: {
+                    str(e)}")
 
     def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name."""
@@ -120,7 +125,9 @@ class Nightline(db.Model):
 
     def set_now(self, now: bool) -> None:
         """Set now value of a nightline."""
-        logger.info(f"Set the now value of nightline: '{self.name}' to: '{now}'")
+        logger.info(
+            f"Set the now value of nightline: '{
+                self.name}' to: '{now}'")
         self.now = now
         db.session.commit()
 
@@ -132,14 +139,16 @@ class Nightline(db.Model):
         """Generate and assign a new 256B API key to the nightline."""
         logger.debug(f"Renew api key of nightline: '{self.name}'")
 
-        api_key =  ApiKey.get_api_key(self.id)
+        api_key = ApiKey.get_api_key(self.id)
         if api_key:
             api_key.key = ApiKey.generate_api_key()
             db.session.commit()
 
-            logger.info(f"Api key for nightline '{self.name}' renewed successfully")
+            logger.info(
+                f"Api key for nightline '{
+                    self.name}' renewed successfully")
             return True
-        
+
         logger.error(f"No api key found for nightline: '{self.name}'")
         return False
 
