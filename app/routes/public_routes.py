@@ -2,7 +2,7 @@ from flask import request
 from flask_restx import Namespace, Resource, abort
 from sqlalchemy import or_
 
-from app.routes.api_models import nightline_status_model
+from app.routes.api_models import error_model, nightline_status_model
 from app.models import Nightline, Status
 from app.routes.decorators import sanitize_name
 
@@ -12,6 +12,7 @@ public_ns = Namespace(
     description="Public accessible routes")
 
 # Define the response model for nightline status
+pb_error_model = public_ns.model("Error", error_model)
 pb_nl_status_model = public_ns.model(
     "Nightline Status", nightline_status_model)
 
@@ -19,14 +20,14 @@ pb_nl_status_model = public_ns.model(
 class PublicNightlineStatusResource(Resource):
     @sanitize_name
     @public_ns.response(200, "Success", pb_nl_status_model)
-    @public_ns.response(400, "Bad Request")
-    @public_ns.response(404, "Nightline Not Found")
+    @public_ns.response(400, "Bad Request", pb_error_model)
+    @public_ns.response(404, "Nightline Not Found", pb_error_model)
     @public_ns.marshal_with(pb_nl_status_model)
     def get(self, name):
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
-            abort(404, f"Nightline '{name}' not found")
+            abort(404, message=f"Nightline '{name}' not found")
 
         # Extend the response with `now` field
         response = {**nightline.status.__dict__, "now": nightline.now}
@@ -38,7 +39,7 @@ class PublicNightlineListResource(Resource):
     @public_ns.param("status", "Filter for the current status (e.g., 'default' or 'german-english'). Optional.")
     @public_ns.param("language", "Language filter for to only include nightlines speaking a certain language. Optional.")
     @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional.")
-    @public_ns.response(400, "Bad Request")
+    @public_ns.response(400, "Bad Request", pb_error_model)
     @public_ns.marshal_with(pb_nl_status_model, as_list=True)
     def get(self):
         """Retrieve the statuses of all nightlines with filter options"""

@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource
 
+from app.routes.api_models import error_model
 from app.models import Nightline
 from app.routes.decorators import sanitize_name
 
@@ -7,6 +8,8 @@ from app.routes.decorators import sanitize_name
 admin_nightline_ns = Namespace(
     "admin nightline",
     description="Admin routes for nightlines - API key required")
+
+ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 
 @admin_nightline_ns.route("/<string:name>")
 class NightlineResource(Resource):

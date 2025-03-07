@@ -1,15 +1,17 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import status_model
+from app.routes.api_models import error_model, status_model
 from app.models import Status
 from app.routes.decorators import sanitize_name
+
 
 admin_status_ns = Namespace(
     "admin status",
     description="Admin routes for statuses - API key required")
 
 # Define the request and response model for the status
+ad_error_model = admin_status_ns.model("Error", error_model)
 ad_status_model = admin_status_ns.model("Status", status_model)
 
 @admin_status_ns.route("/<string:name>")

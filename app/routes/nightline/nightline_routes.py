@@ -1,7 +1,7 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import nightline_status_model, nightline_now_model
+from app.routes.api_models import error_model, nightline_status_model, nightline_now_model
 from app.models import Nightline
 from app.routes.decorators import sanitize_name
 
@@ -10,6 +10,7 @@ nightline_ns = Namespace(
     description="Routes for nightlines - API key required")
 
 # Define the request model for the update status and now boolean
+nl_error_model = nightline_ns.model("Error", error_model)
 nl_status_model = nightline_ns.model(
     'Nightline Status', nightline_status_model)
 nl_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
@@ -19,8 +20,8 @@ class NightlineStatusResource(Resource):
     @sanitize_name
     @nightline_ns.expect(nl_status_model)
     @nightline_ns.response(200, "Success", nl_status_model)
-    @nightline_ns.response(400, "Bad Request")
-    @nightline_ns.response(404, "Nightline Not Found")
+    @nightline_ns.response(400, "Bad Request", nl_error_model)
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     @nightline_ns.marshal_with(nl_status_model)
     def patch(self, name):
         """Set the status of a nightline."""
@@ -47,8 +48,8 @@ class NightlineNowResource(Resource):
     @sanitize_name
     @nightline_ns.expect(nl_now_model)
     @nightline_ns.response(200, "Success", nl_now_model)
-    @nightline_ns.response(400, "Bad Request")
-    @nightline_ns.response(404, "Nightline Not Found")
+    @nightline_ns.response(400, "Bad Request", nl_error_model)
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     @nightline_ns.marshal_with(nl_now_model)
     def patch(self, name):
         """Update the 'now' boolean of a nightline."""

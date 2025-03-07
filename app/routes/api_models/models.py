@@ -1,6 +1,10 @@
 from flask_restx import fields
 
 
+error_model = {
+    "message": fields.String(required=True, description="Error message"),
+}
+
 # API model for a single status
 status_model = {
     "name": fields.String(required=True, description="Name of the status"),
@@ -22,5 +26,5 @@ nightline_status_model = {
 
 # API model for the now value of a nightline
 nightline_now_model = {
-    'now': fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
+    "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
