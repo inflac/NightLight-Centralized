@@ -46,11 +46,8 @@ class PublicNightlineListResource(Resource):
         language_filter = request.args.get("language")
         now_filter = request.args.get("now")
 
-        # Build the query
         query = Nightline.query
-
-        # Explicit join with Status to prevent Cartesian product warning
-        query = query.join(Status, Nightline.status)  # Explicit join
+        query = query.join(Status, Nightline.status)
 
         # Apply filters
         if status_filter:

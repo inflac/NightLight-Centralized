@@ -1,6 +1,6 @@
 import secrets
 
-from ..db import db
+from app.db import db
 from app.logger import logger
 
 class ApiKey(db.Model):

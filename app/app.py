@@ -1,10 +1,10 @@
 from flask import Flask, Blueprint
 from flask_restx import Api
 
-from .config import Config
-from .db import db
-from .setup import preinitialize_statuses
-from .routes import *
+from app.config import Config
+from app.db import db
+from app.setup import preinitialize_statuses
+from app.routes import *
 
 def create_app():
     app = Flask(__name__)
