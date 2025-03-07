@@ -3,6 +3,7 @@ from flask_restx import Namespace, Resource, abort
 
 from app.routes.api_models import status_model
 from app.models import Status
+from app.routes.decorators import sanitize_name
 
 admin_status_ns = Namespace(
     "admin status",
@@ -16,6 +17,7 @@ class StatusResource(Resource):
     @admin_status_ns.expect(ad_status_model)
     # Define the response format for success
     @admin_status_ns.marshal_with(ad_status_model)
+    @sanitize_name
     def post(self, name):
         data = request.get_json()
 
@@ -43,6 +45,7 @@ class StatusResource(Resource):
         }, 201
 
     # Route to remove a status
+    @sanitize_name
     def delete(self, name):
         Status.remove_status(name)
         return {"message": f"Status '{name}' removed successfully."}, 200

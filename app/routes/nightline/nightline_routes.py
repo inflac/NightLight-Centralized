@@ -4,6 +4,7 @@ from flask_restx import Namespace, Resource, abort
 
 from app.routes.api_models import nightline_status_model, nightline_now_model
 from app.models import Nightline
+from app.routes.decorators import sanitize_name
 
 nightline_ns = Namespace(
     "nightline",
@@ -21,6 +22,7 @@ class NightlineStatusResource(Resource):
     @nightline_ns.response(400, "Bad Request")
     @nightline_ns.response(404, "Nightline Not Found")
     @nightline_ns.marshal_with(nl_status_model)
+    @sanitize_name
     def patch(self, name):
         """Set the status of a nightline."""
         nightline = Nightline.get_nightline(name)
@@ -48,6 +50,7 @@ class NightlineNowResource(Resource):
     @nightline_ns.response(400, "Bad Request")
     @nightline_ns.response(404, "Nightline Not Found")
     @nightline_ns.marshal_with(nl_now_model)
+    @sanitize_name
     def patch(self, name):
         """Update the 'now' boolean of a nightline."""
         # Fetch the nightline entry

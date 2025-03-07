@@ -1,5 +1,8 @@
 from flask_restx import Namespace, Resource
+
 from app.models import Nightline
+from app.routes.decorators import sanitize_name
+
 
 admin_nightline_ns = Namespace(
     "admin nightline",
@@ -7,6 +10,7 @@ admin_nightline_ns = Namespace(
 
 @admin_nightline_ns.route("/<string:name>")
 class NightlineResource(Resource):
+    @sanitize_name
     def get(self, name):
         """Retrieve details of a specific nightline."""
         nightline = Nightline.get_nightline(name)
@@ -16,6 +20,7 @@ class NightlineResource(Resource):
             "instagram_media_id": nightline.instagram_media_id
         }, 200
 
+    @sanitize_name
     def post(self, name):
         """Add a new nightline with the default status."""
         new_nightline = Nightline.add_nightline(name)
@@ -26,6 +31,7 @@ class NightlineResource(Resource):
             "status": new_nightline.status.name
         }, 201
 
+    @sanitize_name
     def delete(self, name):
         """Remove a nightline by name."""
         Nightline.remove_nightline(name)
@@ -33,6 +39,7 @@ class NightlineResource(Resource):
 
 @admin_nightline_ns.route("/<string:name>/renew_key")
 class ApiKeyResource(Resource):
+    @sanitize_name
     def patch(self, name):
         """Renew the API-Key of a nightline"""
         nightline = Nightline.get_nightline(name)

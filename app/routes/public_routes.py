@@ -3,6 +3,8 @@ from flask_restx import Namespace, Resource
 
 from app.routes.api_models import nightline_filter_model, nightline_status_model
 from app.models import Nightline
+from app.routes.decorators import sanitize_name
+
 
 public_ns = Namespace(
     "public",
@@ -19,6 +21,7 @@ pb_nl_filter_model = public_ns.model(
 @public_ns.route("/<string:name>")
 class PublicNightlineStatusResource(Resource):
     @public_ns.marshal_with(pb_nl_status_model)
+    @sanitize_name
     def get(self, name):
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
