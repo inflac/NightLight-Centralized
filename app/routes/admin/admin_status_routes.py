@@ -14,10 +14,9 @@ ad_status_model = admin_status_ns.model("Status", status_model)
 
 @admin_status_ns.route("/<string:name>")
 class StatusResource(Resource):
-    @admin_status_ns.expect(ad_status_model)
-    # Define the response format for success
-    @admin_status_ns.marshal_with(ad_status_model)
     @sanitize_name
+    @admin_status_ns.expect(ad_status_model)
+    @admin_status_ns.marshal_with(ad_status_model)
     def post(self, name):
         data = request.get_json()
 

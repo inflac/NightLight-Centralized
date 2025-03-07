@@ -20,6 +20,9 @@ class Config:
     # General
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 5000))
+    
+    # Restx Configuration
+    ERROR_404_HELP = False # Disable route suggenstions on 404
 
     # Admin routes
     ENABLE_ADMIN_ROUTES = os.getenv(

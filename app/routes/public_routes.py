@@ -1,8 +1,9 @@
 from flask import request
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, abort
+from sqlalchemy import or_
 
-from app.routes.api_models import nightline_filter_model, nightline_status_model
-from app.models import Nightline
+from app.routes.api_models import nightline_status_model
+from app.models import Nightline, Status
 from app.routes.decorators import sanitize_name
 
 
@@ -13,18 +14,19 @@ public_ns = Namespace(
 # Define the response model for nightline status
 pb_nl_status_model = public_ns.model(
     "Nightline Status", nightline_status_model)
-# Define the request model for filtering
-pb_nl_filter_model = public_ns.model(
-    "Nightline Status Filter",
-    nightline_filter_model)
 
 @public_ns.route("/<string:name>")
 class PublicNightlineStatusResource(Resource):
-    @public_ns.marshal_with(pb_nl_status_model)
     @sanitize_name
+    @public_ns.response(200, "Success", pb_nl_status_model)
+    @public_ns.response(400, "Bad Request")
+    @public_ns.response(404, "Nightline Not Found")
+    @public_ns.marshal_with(pb_nl_status_model)
     def get(self, name):
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
 
         # Extend the response with `now` field
         response = {**nightline.status.__dict__, "now": nightline.now}
@@ -33,7 +35,10 @@ class PublicNightlineStatusResource(Resource):
 # Resource to get the statuses of all nightlines with filter options
 @public_ns.route("/all")
 class PublicNightlineListResource(Resource):
-    @public_ns.expect(pb_nl_filter_model, validate=False)
+    @public_ns.param("status", "Filter for the current status (e.g., 'default' or 'german-english'). Optional.")
+    @public_ns.param("language", "Language filter for to only include nightlines speaking a certain language. Optional.")
+    @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional.")
+    @public_ns.response(400, "Bad Request")
     @public_ns.marshal_with(pb_nl_status_model, as_list=True)
     def get(self):
         """Retrieve the statuses of all nightlines with filter options"""
@@ -44,24 +49,37 @@ class PublicNightlineListResource(Resource):
         # Build the query
         query = Nightline.query
 
+        # Explicit join with Status to prevent Cartesian product warning
+        query = query.join(Status, Nightline.status)  # Explicit join
+
         # Apply filters
         if status_filter:
             query = query.filter(Nightline.status.has(name=status_filter))
 
         if language_filter:
+            # Use 'or_' to combine conditions for multiple possible values of status.name
             if language_filter == "de":
                 query = query.filter(
-                    Nightline.status.name.in_(["german", "german-english"]))
+                    or_(
+                        Status.name == "german",
+                        Status.name == "german-english"
+                    )
+                )
             elif language_filter == "en":
                 query = query.filter(
-                    Nightline.status.name.in_(["english", "german-english"]))
+                    or_(
+                        Status.name == "english",
+                        Status.name == "german-english"
+                    )
+                )
+            else:
+                abort(400, f"Invalid language filter value: {language_filter}. Only 'en' and 'de' are allowed.")
 
         if now_filter:
             query = query.filter(
-                Nightline.now == (
-                    now_filter.lower() == "true"))
+                Nightline.now == (now_filter.lower() == "true"))
 
-        # Fetch the filtered nightlines
+        # Execute query and return results
         nightlines = query.all()
 
         response = [{**nightline.status.__dict__, "now": nightline.now}

@@ -24,10 +24,3 @@ nightline_status_model = {
 nightline_now_model = {
     'now': fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
-
-# API model for filtering nightlines
-nightline_filter_model = {
-    "status": fields.String(description="Filter by status"),
-    "language": fields.String(description="Filter by language (de/en)"),
-    "now": fields.Boolean(description="Filter by 'now' boolean value"),
-}

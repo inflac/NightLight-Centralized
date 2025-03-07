@@ -17,12 +17,12 @@ nl_now_model = nightline_ns.model('Nightline Now', nightline_now_model)
 
 @nightline_ns.route("/<string:name>")
 class NightlineStatusResource(Resource):
+    @sanitize_name
     @nightline_ns.expect(nl_status_model)
     @nightline_ns.response(200, "Success", nl_status_model)
     @nightline_ns.response(400, "Bad Request")
     @nightline_ns.response(404, "Nightline Not Found")
     @nightline_ns.marshal_with(nl_status_model)
-    @sanitize_name
     def patch(self, name):
         """Set the status of a nightline."""
         nightline = Nightline.get_nightline(name)
@@ -45,12 +45,12 @@ class NightlineStatusResource(Resource):
 
 @nightline_ns.route("/<string:name>/now")
 class NightlineNowResource(Resource):
+    @sanitize_name
     @nightline_ns.expect(nl_now_model)
     @nightline_ns.response(200, "Success", nl_now_model)
     @nightline_ns.response(400, "Bad Request")
     @nightline_ns.response(404, "Nightline Not Found")
     @nightline_ns.marshal_with(nl_now_model)
-    @sanitize_name
     def patch(self, name):
         """Update the 'now' boolean of a nightline."""
         # Fetch the nightline entry
