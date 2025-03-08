@@ -1,5 +1,6 @@
 from flask import Flask, Blueprint
 from flask_restx import Api
+from sqlalchemy.exc import OperationalError
 
 from app.config import Config
 from app.db import db
@@ -21,8 +22,14 @@ def create_app():
     logger.info("Database initialized")
 
     with app.app_context():
-        db.create_all()
-        preinitialize_statuses()
+        try:
+            db.create_all()
+            preinitialize_statuses()
+        except OperationalError as e:
+            if "table statuses already exists" in str(e):
+                pass
+            else:
+                raise  # If it's another error, re-raise it
 
     # Create a single API instance
     api_bp = Blueprint("api", __name__)
