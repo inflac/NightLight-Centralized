@@ -15,4 +15,4 @@ RUN crontab /etc/cron.d/reset-status-cron
 
 EXPOSE 5000
 
-CMD cron && gunicorn --log-level info --timeout 120 -w 3 -b ${HOST}:5000 app:app
+CMD cron && gunicorn --preload --log-level info --timeout 120 -w 3 -b ${HOST}:5000 app:app

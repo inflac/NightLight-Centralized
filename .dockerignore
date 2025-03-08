@@ -1,0 +1,31 @@
+# Exclude the Python virtual environment directory
+.venv/
+
+# Exclude Git-related files and directories
+.git/
+.gitignore
+
+# Exclude docker related files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Exclude additional .env files
+.env.*
+
+# Exclude vscode related files
+.vscode/
+
+# Exclude log files
+*.log
+
+# Exclude linter config
+*.toml
+
+# Exclude text and markdown files
+*.md
+
+# Exclude any test or coverage files
+tests/
+*.pyc
+__pycache__/
