@@ -62,11 +62,27 @@ class NightlineResource(Resource):
         response = {"message": f"Nightline '{name}' removed successfully"}
         return response, 200
 
-@admin_nightline_ns.route("/<string:name>/renew_key")
+@admin_nightline_ns.route("/key/<string:name>")
 class ApiKeyResource(Resource):
-    @sanitize_name
+    @sanitize_name # Can return 400 error
+    @admin_nightline_ns.response(200, "Success")
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
+    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
+    @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
+    def get(self, name):
+        """Get the API-Key of a nightline"""
+        nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
+
+        api_key = nightline.get_api_key()
+        if not api_key:
+            abort(500, "No api key found for nightline: '{name}'")
+
+        return {"API-Key": f"{api_key.key}"}, 200
+
+    @sanitize_name # Can return 400 error
     @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
-    # Can be returend by sanitize_name
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
     @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
