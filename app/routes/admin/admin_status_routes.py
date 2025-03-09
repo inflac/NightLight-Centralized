@@ -1,9 +1,8 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import error_model, success_model, status_model
+from app.routes.api_models import error_model, success_model, status_model, set_status_model
 from app.models import Status
-from app.routes.decorators import sanitize_name
 
 
 admin_status_ns = Namespace(
@@ -12,13 +11,14 @@ admin_status_ns = Namespace(
 
 # Define the request and response model for the status
 ad_st_error_model = admin_status_ns.model("Error", error_model)
-ad_nl_success_model = admin_status_ns.model("Success", success_model)
+ad_st_success_model = admin_status_ns.model("Success", success_model)
 ad_st_status_model = admin_status_ns.model("Status", status_model)
+ad_st_set_status_model = admin_status_ns.model("Set Status", set_status_model)
 
 @admin_status_ns.route("/")
 class StatusResource(Resource):
     @admin_status_ns.expect(ad_st_status_model)
-    @admin_status_ns.response(200, "Success", ad_nl_success_model)
+    @admin_status_ns.response(200, "Success", ad_st_success_model)
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
     def post(self):
         data = request.get_json()
@@ -57,16 +57,17 @@ class StatusResource(Resource):
         return response, 200
 
     # Route to remove a status
-    @admin_status_ns.response(200, "Success", ad_nl_success_model)
+    @admin_status_ns.expect(ad_st_set_status_model)
+    @admin_status_ns.response(200, "Success", ad_st_success_model)
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
     def delete(self):
         data = request.get_json()
-        if not data or "name" not in data:
-            abort(400, message="Missing 'name' field in the request body")
+        if not data or "status" not in data:
+            abort(400, message="Missing 'status' field in the request body")
 
-        name = data["name"]
+        name = data["status"]
         if len(name) > 15 or not name.isalnum():
-            abort(400, message="The value for 'name' is not a valid status name")
+            abort(400, message="The value for 'status' is not a valid status name")
 
         status = Status.remove_status(name)
         if not status:
@@ -81,7 +82,7 @@ class StatusListResource(Resource):
     @admin_status_ns.response(200, "Success", [ad_st_status_model])
     @admin_status_ns.response(404, "Statuses Not Found", ad_st_error_model)
     def get(self):
-        statuses = Status.list_status()
+        statuses = Status.list_statuses()
 
         response = [{
             'status_name': status.name,

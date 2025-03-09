@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from ..db import db
 from .status import Status
 from .apikey import ApiKey
+from .nightlinestatus import NightlineStatus
 from .instagram import InstagramAccount
 from app.logger import logger
 
@@ -17,6 +18,10 @@ class Nightline(db.Model):
         db.ForeignKey("statuses.id"),
         nullable=False)
     status = db.relationship("Status", backref="nightlines")
+    nightline_statuses = db.relationship(
+        "NightlineStatus",
+        back_populates="nightline",
+        cascade="all, delete-orphan")
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
     instagram_account = db.relationship(
@@ -61,6 +66,9 @@ class Nightline(db.Model):
             db.session.commit()
             logger.debug(f"Created API-Key for nightline: '{name}'")
 
+            # Create NightlineStatus entries for all Statuses
+            NightlineStatus.add_statuses_for_new_nightlines(new_nightline)
+
             logger.info(f"Nightline '{name}' added successfully")
             return new_nightline
         except Exception as e:
@@ -83,6 +91,8 @@ class Nightline(db.Model):
             logger.info(
                 f"Api key for nightline '{name}' not found, can't remove the nightline")
             return None
+
+        NightlineStatus.delete_statuses_for_nightline(nightline)
 
         try:
             db.session.delete(api_key)
@@ -162,6 +172,13 @@ class Nightline(db.Model):
         logger.info(f"Reset the status of nightline: '{self.name}'")
         return self.set_status("default")
 
+    def get_instagram_story_config(self) -> Optional[bool]:
+        """Get the Instagram story config for the current status"""
+        for nightline_status in self.nightline_statuses:
+            if nightline_status.status_id == self.status_id:
+                return nightline_status.instagram_story
+        return None
+
     def set_now(self, now: bool) -> None:
         """Set now value of a nightline"""
         logger.info(
@@ -217,10 +234,14 @@ class Nightline(db.Model):
             self.instagram_account.set_username(new_username)
             db.session.commit()
 
-            logger.info(f"Instagram username updated to {new_username} for Nightline {self.name}.")
+            logger.info(
+                f"Instagram username updated to {new_username} for Nightline {
+                    self.name}.")
             return True
         else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            logger.warning(
+                f"No Instagram account found for Nightline {
+                    self.name}.")
             return False
 
     def update_instagram_password(self, new_password: str) -> bool:
@@ -229,10 +250,14 @@ class Nightline(db.Model):
             self.instagram_account.set_password(new_password)
             db.session.commit()
 
-            logger.info(f"Instagram password updated for Nightline {self.name}.")
+            logger.info(
+                f"Instagram password updated for Nightline {
+                    self.name}.")
             return True
         else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            logger.warning(
+                f"No Instagram account found for Nightline {
+                    self.name}.")
             return False
 
     def delete_instagram_account(self) -> bool:
@@ -241,10 +266,14 @@ class Nightline(db.Model):
             db.session.delete(self.instagram_account)
             db.session.commit()
 
-            logger.info(f"Instagram account deleted for Nightline {self.name}.")
+            logger.info(
+                f"Instagram account deleted for Nightline {
+                    self.name}.")
             return True
         else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            logger.warning(
+                f"No Instagram account found for Nightline {
+                    self.name}.")
             return False
 
     def __repr__(self) -> str:

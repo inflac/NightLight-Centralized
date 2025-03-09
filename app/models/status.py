@@ -1,6 +1,7 @@
 from typing import Optional
 
 from ..db import db
+from .nightlinestatus import NightlineStatus
 from app.logger import logger
 
 
@@ -45,6 +46,9 @@ class Status(db.Model):
             db.session.add(new_status)
             db.session.commit()
 
+            # Create NightlineStatus entries for all Nightlines
+            NightlineStatus.add_new_status_for_all_nightlines(new_status)
+
             logger.info(f"Status '{name}' added successfully")
             return new_status
         except Exception as e:
@@ -62,6 +66,8 @@ class Status(db.Model):
             logger.info(f"Status '{name}' not found, nothing to remove")
             return None
 
+        NightlineStatus.delete_status_for_all_nightlines(status_to_remove)
+
         try:
             db.session.delete(status_to_remove)
             db.session.commit()
@@ -74,7 +80,7 @@ class Status(db.Model):
             return None
 
     @classmethod
-    def list_status(cls) -> list[dict]:
+    def list_statuses(cls) -> list[dict]:
         """List all available statuses"""
         logger.debug("Listing all statuses")
 
