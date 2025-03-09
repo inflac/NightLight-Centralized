@@ -26,6 +26,11 @@ set_status_model = {
     "status": fields.String(required=True, description="Name of the status"),
 }
 
+set_status_config_model = {
+    "status": fields.String(required=True, description="Name of the status"),
+    "instagram_story": fields.Boolean(required=True, description="'instagram_story' boolean of status 'status'"),
+}
+
 
 set_now_model = {
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),

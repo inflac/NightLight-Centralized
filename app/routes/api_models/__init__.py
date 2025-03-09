@@ -6,6 +6,7 @@ __all__ = [
     "api_key_model",
     "status_model",
     "set_status_model",
+    "set_status_config_model",
     "set_now_model",
     "nightline_model",
     "nightline_status_model",

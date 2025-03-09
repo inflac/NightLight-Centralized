@@ -1,8 +1,8 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import error_model, success_model, set_status_model, set_now_model, instagram_create_model
-from app.models import Nightline
+from app.routes.api_models import error_model, success_model, set_status_model, set_status_config_model, set_now_model, instagram_create_model
+from app.models import Nightline, Status, NightlineStatus
 from app.routes.decorators import sanitize_name
 
 nightline_ns = Namespace(
@@ -13,6 +13,8 @@ nightline_ns = Namespace(
 nl_error_model = nightline_ns.model("Error", error_model)
 nl_success_model = nightline_ns.model("Success", success_model)
 nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
+nl_set_status_config_model = nightline_ns.model(
+    "Set Status Config", set_status_config_model)
 nl_set_now_model = nightline_ns.model("Set Now", set_now_model)
 nl_instagram_create_model = nightline_ns.model(
     "Instagram Credentials", instagram_create_model)
@@ -67,6 +69,42 @@ class NightlineStatusResource(Resource):
         response = {"message": "Status successfully reset to: 'default'"}
         return response, 200
 
+@nightline_ns.route("/<string:name>/status/config")
+class NightlineStatusConfigResource(Resource):
+    @sanitize_name
+    @nightline_ns.expect(nl_set_status_config_model)
+    @nightline_ns.response(200, "Success", nl_success_model)
+    @nightline_ns.response(400, "Bad Request", nl_error_model)
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
+    @nightline_ns.response(500, "Status Error", nl_error_model)
+    def patch(self, name):
+        """Configure a status of a nightline"""
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
+        if not data or "status" not in data or "instagram_story" not in data:
+            abort(400, "Missing 'instagram_story' field in request")
+
+        instagram_story = data.get("instagram_story")
+        if not isinstance(instagram_story, bool):
+            abort(400, "'instagram_story' must be a boolean")
+
+        status_value = data["status"]
+        if not isinstance(status_value, str) or not status_value.strip() or len(
+                status_value) > 15:
+            abort(400, "'status' must be a non-empty valid status name")
+        status = Status.get_status(status_value)
+
+        nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
+
+        if not NightlineStatus.update_instagram_story(
+                nightline, status, instagram_story):
+            abort(500, f"Updating the status failed")
+
+        response = {"message": f"Status successfully updated"}
+        return response, 200
+
 @nightline_ns.route("/<string:name>/now")
 class NightlineNowResource(Resource):
     @sanitize_name
@@ -88,7 +126,7 @@ class NightlineNowResource(Resource):
             abort(400, "Missing 'now' field in request")
 
         now_value = data.get("now")
-        if not isinstance(now_value, bool):  # More robust boolean check
+        if not isinstance(now_value, bool):
             abort(400, "'now' must be a boolean")
 
         # Update and persist the change
