@@ -191,54 +191,61 @@ class Nightline(db.Model):
         logger.error(f"No api key found for nightline: '{self.name}'")
         return False
 
-    def add_instagram_account(self, username: str, password: str):
+    def add_instagram_account(self, username: str, password: str) -> bool:
         """Creates an Instagram account for the Nightline and saves it."""
-        try:
-            if not self.instagram_account:
-                insta_account = InstagramAccount(
-                    nightline_id=self.id, username=username)
-                # Automatically encrypts and saves the password
-                insta_account.set_password(password)
-                db.session.add(insta_account)
-                db.session.commit()
+        if not self.instagram_account:
+            insta_account = InstagramAccount(
+                nightline_id=self.id, username=username)
+            # Automatically encrypts and saves the password
+            insta_account.set_password(password)
+            db.session.add(insta_account)
+            db.session.commit()
 
-                logger.info(
-                    f"Instagram account added for nightline {
-                        self.name} with username {username}")
-                return insta_account
-            else:
-                logger.warning(
-                    f"Instagram account already exists for nightline {
-                        self.name}")
-                return None
-        except Exception as e:
-            logger.error(
-                f"Error adding Instagram account for nightline {
-                    self.name}: {
-                    str(e)}")
-            db.session.rollback()
-            return None
+            logger.info(
+                f"Instagram account added for nightline {
+                    self.name} with username {username}")
+            return True
+        else:
+            logger.warning(
+                f"Instagram account already exists for nightline {
+                    self.name}")
+            return False
 
-    # TODO add error handling and logging
-    def update_instagram_username(self, new_username: str):
-        """Updates the Instagram account's password."""
+    def update_instagram_username(self, new_username: str) -> bool:
+        """Updates the Instagram account's username."""
         if self.instagram_account:
             self.instagram_account.set_username(new_username)
             db.session.commit()
 
-    # TODO add error handling and logging
-    def update_instagram_password(self, new_password: str):
+            logger.info(f"Instagram username updated to {new_username} for Nightline {self.name}.")
+            return True
+        else:
+            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            return False
+
+    def update_instagram_password(self, new_password: str) -> bool:
         """Updates the Instagram account's password."""
         if self.instagram_account:
             self.instagram_account.set_password(new_password)
             db.session.commit()
 
-    # TODO add error handling and logging
-    def delete_instagram_account(self):
+            logger.info(f"Instagram password updated for Nightline {self.name}.")
+            return True
+        else:
+            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            return False
+
+    def delete_instagram_account(self) -> bool:
         """Deletes the associated Instagram account."""
         if self.instagram_account:
             db.session.delete(self.instagram_account)
             db.session.commit()
+
+            logger.info(f"Instagram account deleted for Nightline {self.name}.")
+            return True
+        else:
+            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+            return False
 
     def __repr__(self) -> str:
         return f"Nightline('{self.name}')"
