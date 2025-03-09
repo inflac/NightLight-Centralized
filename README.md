@@ -9,5 +9,7 @@
         * store session in InstagramAccount
 * Add authentication for routes
 * Reevaluate error handling and rollbacks in db models
+* Add tests
+* Add git pipeline
 * Readme
 * [ratelimiting](https://flask-limiter.readthedocs.io/en/stable/)
