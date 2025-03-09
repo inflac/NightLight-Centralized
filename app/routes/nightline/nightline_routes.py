@@ -14,7 +14,8 @@ nl_error_model = nightline_ns.model("Error", error_model)
 nl_success_model = nightline_ns.model("Success", success_model)
 nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
 nl_set_now_model = nightline_ns.model("Set Now", set_now_model)
-nl_instagram_create_model = nightline_ns.model("Instagram Credentials", instagram_create_model)
+nl_instagram_create_model = nightline_ns.model(
+    "Instagram Credentials", instagram_create_model)
 
 @nightline_ns.route("/<string:name>/status")
 class NightlineStatusResource(Resource):
@@ -24,7 +25,6 @@ class NightlineStatusResource(Resource):
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     @nightline_ns.response(500, "Status Error", nl_error_model)
-
     def patch(self, name):
         """Set the status of a nightline"""
         # Parse and validate request body
@@ -33,7 +33,8 @@ class NightlineStatusResource(Resource):
             abort(400, "Missing 'status' field in request")
 
         status_value = data["status"]
-        if not isinstance(status_value, str) or not status_value.strip() or len(status_value) > 15:
+        if not isinstance(status_value, str) or not status_value.strip() or len(
+                status_value) > 15:
             abort(400, "'status' must be a non-empty valid status name")
 
         nightline = Nightline.get_nightline(name)
@@ -44,7 +45,8 @@ class NightlineStatusResource(Resource):
         if not status:
             abort(500, f"Updating the status failed")
 
-        response = {"message": f"Status successfully updated to: {status_value}"}
+        response = {
+            "message": f"Status successfully updated to: {status_value}"}
         return response, 200
 
     @sanitize_name
@@ -98,7 +100,8 @@ class NightlineNowResource(Resource):
 @nightline_ns.route("/<string:name>/instagram")
 class NightlineInstagramResource(Resource):
     @sanitize_name
-    @nightline_ns.expect(nl_instagram_create_model)  # Expect the data for creating Instagram account
+    # Expect the data for creating Instagram account
+    @nightline_ns.expect(nl_instagram_create_model)
     @nightline_ns.response(201, "Created", nl_success_model)
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)

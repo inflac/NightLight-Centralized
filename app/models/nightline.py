@@ -19,7 +19,11 @@ class Nightline(db.Model):
     status = db.relationship("Status", backref="nightlines")
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
-    instagram_account = db.relationship("InstagramAccount", uselist=False, cascade="all, delete-orphan", back_populates="nightline")
+    instagram_account = db.relationship(
+        "InstagramAccount",
+        uselist=False,
+        cascade="all, delete-orphan",
+        back_populates="nightline")
 
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
@@ -76,7 +80,8 @@ class Nightline(db.Model):
 
         api_key = ApiKey.get_api_key(nightline.id)
         if not api_key:
-            logger.info(f"Api key for nightline '{name}' not found, can't remove the nightline")
+            logger.info(
+                f"Api key for nightline '{name}' not found, can't remove the nightline")
             return None
 
         try:
@@ -190,18 +195,27 @@ class Nightline(db.Model):
         """Creates an Instagram account for the Nightline and saves it."""
         try:
             if not self.instagram_account:
-                insta_account = InstagramAccount(nightline_id=self.id, username=username)
-                insta_account.set_password(password)  # Automatically encrypts and saves the password
+                insta_account = InstagramAccount(
+                    nightline_id=self.id, username=username)
+                # Automatically encrypts and saves the password
+                insta_account.set_password(password)
                 db.session.add(insta_account)
                 db.session.commit()
 
-                logger.info(f"Instagram account added for nightline {self.name} with username {username}")
+                logger.info(
+                    f"Instagram account added for nightline {
+                        self.name} with username {username}")
                 return insta_account
             else:
-                logger.warning(f"Instagram account already exists for nightline {self.name}")
+                logger.warning(
+                    f"Instagram account already exists for nightline {
+                        self.name}")
                 return None
         except Exception as e:
-            logger.error(f"Error adding Instagram account for nightline {self.name}: {str(e)}")
+            logger.error(
+                f"Error adding Instagram account for nightline {
+                    self.name}: {
+                    str(e)}")
             db.session.rollback()
             return None
 

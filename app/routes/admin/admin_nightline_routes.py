@@ -65,7 +65,7 @@ class NightlineResource(Resource):
 
 @admin_nightline_ns.route("/key/<string:name>")
 class ApiKeyResource(Resource):
-    @sanitize_name # Can return 400 error
+    @sanitize_name  # Can return 400 error
     @admin_nightline_ns.response(200, "Success", ad_nl_api_key_model)
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
@@ -82,7 +82,7 @@ class ApiKeyResource(Resource):
 
         return {"API-Key": f"{api_key.key}"}, 200
 
-    @sanitize_name # Can return 400 error
+    @sanitize_name  # Can return 400 error
     @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
