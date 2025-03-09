@@ -7,5 +7,6 @@ flask-cors
 instagrapi
 pillow
 flask-restx
+cryptography
 autopep8
 pylint

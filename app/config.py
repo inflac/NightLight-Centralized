@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from .logger import create_logger
 
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -28,6 +29,11 @@ class Config:
     ENABLE_ADMIN_ROUTES = os.getenv(
         "ENABLE_ADMIN_ROUTES",
         "false").lower() == "true"
+
+    # Instagram encryption settings
+    ENCRYPTION_PASSWORD = os.getenv("ENCRYPTION_PASSWORD")
+    if not ENCRYPTION_PASSWORD:
+        raise ValueError("ENCRYPTION_PASSWORD is not set in .env!")
 
     # Toggle generating API documentation
     __generate_api_doc = os.getenv(
