@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from ..db import db
 from .status import Status
 from .apikey import ApiKey
+from .instagram import InstagramAccount
 from app.logger import logger
 
 
@@ -18,7 +19,7 @@ class Nightline(db.Model):
     status = db.relationship("Status", backref="nightlines")
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
-
+    instagram_account = db.relationship("InstagramAccount", uselist=False, cascade="all, delete-orphan", back_populates="nightline")
 
     @classmethod
     def get_nightline(cls, name: str) -> Optional["Nightline"]:
@@ -184,6 +185,46 @@ class Nightline(db.Model):
 
         logger.error(f"No api key found for nightline: '{self.name}'")
         return False
+
+    def add_instagram_account(self, username: str, password: str):
+        """Creates an Instagram account for the Nightline and saves it."""
+        try:
+            if not self.instagram_account:
+                insta_account = InstagramAccount(nightline_id=self.id, username=username)
+                insta_account.set_password(password)  # Automatically encrypts and saves the password
+                db.session.add(insta_account)
+                db.session.commit()
+
+                logger.info(f"Instagram account added for nightline {self.name} with username {username}")
+                return insta_account
+            else:
+                logger.warning(f"Instagram account already exists for nightline {self.name}")
+                return None
+        except Exception as e:
+            logger.error(f"Error adding Instagram account for nightline {self.name}: {str(e)}")
+            db.session.rollback()
+            return None
+
+    # TODO add error handling and logging
+    def update_instagram_username(self, new_username: str):
+        """Updates the Instagram account's password."""
+        if self.instagram_account:
+            self.instagram_account.set_username(new_username)
+            db.session.commit()
+
+    # TODO add error handling and logging
+    def update_instagram_password(self, new_password: str):
+        """Updates the Instagram account's password."""
+        if self.instagram_account:
+            self.instagram_account.set_password(new_password)
+            db.session.commit()
+
+    # TODO add error handling and logging
+    def delete_instagram_account(self):
+        """Deletes the associated Instagram account."""
+        if self.instagram_account:
+            db.session.delete(self.instagram_account)
+            db.session.commit()
 
     def __repr__(self) -> str:
         return f"Nightline('{self.name}')"

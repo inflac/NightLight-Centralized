@@ -26,13 +26,14 @@ set_status_model = {
     "status": fields.String(required=True, description="Name of the status"),
 }
 
-# API model for nightline objects
-nightline_model = {
-    "nightline_name": fields.String(required=True, description="Name of the nightline"),
+
+set_now_model = {
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
 
-set_now_model = {
+# API model for nightline objects
+nightline_model = {
+    "nightline_name": fields.String(required=True, description="Name of the nightline"),
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
 
@@ -45,6 +46,11 @@ nightline_status_model = {
     "description_now_de": fields.String(required=True, description="German description for now"),
     "description_now_en": fields.String(required=True, description="English description for now"),
     "now": fields.Boolean(required=True, description="Indicates whether the shift is currently active"),
+}
+
+instagram_create_model = {
+    "username": fields.String(required=True, description="Username of the instagram account"),
+    "password": fields.String(required=True, description="Password of the instagram account"),
 }
 
 admin_nightline_model = {

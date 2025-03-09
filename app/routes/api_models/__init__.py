@@ -8,4 +8,5 @@ __all__ = [
     "set_status_model",
     "set_now_model",
     "nightline_model",
-    "nightline_status_model"]
+    "nightline_status_model",
+    "instagram_create_model"]
