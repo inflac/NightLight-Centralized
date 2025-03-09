@@ -9,6 +9,10 @@ success_model = {
     "message": fields.String(required=True, description="Success message"),
 }
 
+api_key_model = {
+    "API-Key": fields.String(required=True, description="API-Key for the requested nightline"),
+}
+
 # API model for status objects
 status_model = {
     "status_name": fields.String(required=True, description="Name of the status"),
@@ -18,9 +22,17 @@ status_model = {
     "description_now_en": fields.String(required=True, description="English description for now"),
 }
 
+set_status_model = {
+    "status": fields.String(required=True, description="Name of the status"),
+}
+
 # API model for nightline objects
 nightline_model = {
     "nightline_name": fields.String(required=True, description="Name of the nightline"),
+    "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
+}
+
+set_now_model = {
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
 

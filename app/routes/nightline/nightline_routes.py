@@ -1,7 +1,7 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import error_model, nightline_status_model, nightline_model
+from app.routes.api_models import error_model, success_model, set_status_model, set_now_model
 from app.models import Nightline
 from app.routes.decorators import sanitize_name
 
@@ -11,17 +11,19 @@ nightline_ns = Namespace(
 
 # Define the request model for the update status and now boolean
 nl_error_model = nightline_ns.model("Error", error_model)
-nl_nightline_status_model = nightline_ns.model(
-    'Nightline Status', nightline_status_model)
-nl_nightline_model = nightline_ns.model('Nightline', nightline_model)
+nl_success_model = nightline_ns.model("Success", success_model)
+nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
+nl_set_now_model = nightline_ns.model('Set Now', set_now_model)
 
-@nightline_ns.route("/<string:name>")
+@nightline_ns.route("/<string:name>/status")
 class NightlineStatusResource(Resource):
     @sanitize_name
-    @nightline_ns.expect(nl_nightline_status_model)
-    @nightline_ns.response(200, "Success", nl_nightline_status_model)
+    @nightline_ns.expect(nl_set_status_model)
+    @nightline_ns.response(200, "Success", nl_success_model)
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
+    @nightline_ns.response(500, "Status Error", nl_error_model)
+
     def patch(self, name):
         """Set the status of a nightline"""
         # Parse and validate request body
@@ -30,31 +32,43 @@ class NightlineStatusResource(Resource):
             abort(400, "Missing 'status' field in request")
 
         status_value = data["status"]
-        if not isinstance(status_value, str) or not status_value.strip():
-            abort(400, "'status' must be a non-empty string")
+        if not isinstance(status_value, str) or not status_value.strip() or len(status_value) > 15:
+            abort(400, "'status' must be a non-empty valid status name")
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
 
-        nightline.set_status(status_value.strip())
+        status = nightline.set_status(status_value.strip())
+        if not status:
+            abort(500, f"Updating the status failed")
 
-        response = {
-            'nightline_name': nightline.name,
-            'status_name': nightline.status.name,
-            'description_de': nightline.status.description_de,
-            'description_en': nightline.status.description_en,
-            'description_now_de': nightline.status.description_now_de,
-            'description_now_en': nightline.status.description_now_en,
-            'now': nightline.now,
-        }
+        response = {"message": f"Status successfully updated to: {status_value}"}
+        return response, 200
+
+    @sanitize_name
+    @nightline_ns.response(200, "Success", nl_set_status_model)
+    @nightline_ns.response(400, "Bad Request", nl_error_model)
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
+    @nightline_ns.response(500, "Status Error", nl_error_model)
+    def delete(self, name):
+        """Reset the status of a nightline"""
+        nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
+
+        status = nightline.reset_status()
+        if not status:
+            abort(500, f"Resetting the status failed")
+
+        response = {"message": "Status successfully reset to: 'default'"}
         return response, 200
 
 @nightline_ns.route("/<string:name>/now")
 class NightlineNowResource(Resource):
     @sanitize_name
-    @nightline_ns.expect(nl_nightline_model)
-    @nightline_ns.response(200, "Success", nl_nightline_model)
+    @nightline_ns.expect(nl_set_now_model)
+    @nightline_ns.response(200, "Success", nl_success_model)
     @nightline_ns.response(400, "Bad Request", nl_error_model)
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     def patch(self, name):
@@ -77,8 +91,5 @@ class NightlineNowResource(Resource):
         # Update and persist the change
         nightline.set_now(now_value)
 
-        response = {
-            "nightline_name": nightline.name,
-            "now": nightline.now
-        }
+        response = {"message": f"Now value successfully set to '{now_value}'"}
         return response, 200

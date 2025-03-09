@@ -1,6 +1,6 @@
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import error_model, success_model, admin_nightline_model
+from app.routes.api_models import error_model, success_model, api_key_model, admin_nightline_model
 from app.models import Nightline
 from app.routes.decorators import sanitize_name
 
@@ -11,6 +11,7 @@ admin_nightline_ns = Namespace(
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 ad_nl_success_model = admin_nightline_ns.model("Success", success_model)
+ad_nl_api_key_model = admin_nightline_ns.model("API-Key", api_key_model)
 ad_nl_admin_nightline_model = admin_nightline_ns.model(
     "Admin Nightline", admin_nightline_model)
 
@@ -65,7 +66,7 @@ class NightlineResource(Resource):
 @admin_nightline_ns.route("/key/<string:name>")
 class ApiKeyResource(Resource):
     @sanitize_name # Can return 400 error
-    @admin_nightline_ns.response(200, "Success")
+    @admin_nightline_ns.response(200, "Success", ad_nl_api_key_model)
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
     @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
     @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
