@@ -1,6 +1,7 @@
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..db import db
+from app.models.storyslide import StorySlide
 from app.logger import logger
 
 
@@ -19,6 +20,11 @@ class NightlineStatus(db.Model):
         nullable=False)
     status = db.relationship("Status", backref="nightline_statuses")
     instagram_story = db.Column(db.Boolean, nullable=False, default=False)
+    instagram_story_slide = db.relationship(
+        StorySlide,
+        back_populates="nightline_status",
+        uselist=False
+    )
 
     @classmethod
     def add_new_status_for_all_nightlines(cls, status: "Status") -> bool:

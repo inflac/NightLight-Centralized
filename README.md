@@ -1,4 +1,5 @@
 # Todos
+* Move filehandling code(static functions of StorySlide) into a utils module to simplify mocking and testing
 * Add route to set/remove a story slide
     * store story slide in NightlineStatus
 * Implement check to only allow setting story post to true if a story slide is set
