@@ -38,6 +38,5 @@ def validate_image(image_file) -> None:
     try:
         img = Image.open(image_file)
         img.verify()  # Verify that it's a valid image
-        img.close()
     except Exception:
         abort(400, "Invalid image content")

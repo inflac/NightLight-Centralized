@@ -34,10 +34,10 @@ class StorySlide(db.Model):
         if not os.path.exists(storage_path):
             try:
                 os.makedirs(storage_path)
-                logger.info(f"Directory created at: {storage_path}")
+                logger.info(f"Storage directory created at: {storage_path}")
                 return True
             except OSError as e:
-                logger.error(f"Error creating directory '{storage_path}': {e}")
+                logger.error(f"Error creating storage directory '{storage_path}': {e}")
                 return False
         return True
 
