@@ -79,6 +79,17 @@ class StorySlide(db.Model):
             return False
 
     @classmethod
+    def get_story_slide_by_nightline_status(cls, nightline_status: "NightlineStatus"):
+        """Fetch a story slide by a nightline status"""
+        logger.debug(f"Fetching story slide for nightline status with ID: '{nightline_status.id}'")
+        story_slide = cls.query.filter_by(nightline_status_id=nightline_status.id).first()
+        if story_slide:
+            logger.debug(f"Found story slide for status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}'")
+        else:
+            logger.info(f"Story Slide for nightline status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}' not found")
+        return story_slide
+
+    @classmethod
     def __save_story_slide_file(cls, file, nightline_status: "NightlineStatus", overwrite=False) -> Optional[os.PathLike]:
         """Handles saving the file and checks if the file already exists."""
         
@@ -114,21 +125,26 @@ class StorySlide(db.Model):
         return None
 
     @classmethod
-    def create_story_slide(cls, file, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
+    def update_story_slide(cls, file, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
         """Create a story slide object, referencing the file and filepath"""
 
         # Save the file and get the file path
-        file_path = cls.__save_story_slide_file(file, nightline_status)
+        file_path = cls.__save_story_slide_file(file, nightline_status, overwrite=True)
         if not file_path:
             return None
 
-        # Create the StorySlide object and save it to the database
+        # Create or update the StorySlide object and save it to the database
         try:
-            story_slide = cls(filename=os.path.basename(file_path), path=file_path, nightline_status=nightline_status)
-            db.session.add(story_slide)
+            story_slide = StorySlide.get_story_slide_by_nightline_status(nightline_status)
+            if not story_slide:
+                story_slide = cls(filename=os.path.basename(file_path), path=file_path, nightline_status_id=nightline_status.id)
+                db.session.add(story_slide)
+            else:
+                story_slide.filename = os.path.basename(file_path)
+                story_slide.path = file_path
             db.session.commit()
 
-            logger.info(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' created successfully")
+            logger.info(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' updated successfully")
             return story_slide
         except Exception as e:
             db.session.rollback()
@@ -151,23 +167,4 @@ class StorySlide(db.Model):
             return True
         except Exception as e:
             logger.error(f"Error removing StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}': {e}")
-            return False
-
-    def update_story_slide(self, file, nightline_status: "NightlineStatus") -> bool:
-        """Update the story slide of a nightlines status"""
-        # Save the file and overwrite a probably exsting one
-        file_path = self.__save_story_slide_file(file, nightline_status, overwrite=True)
-        if not file_path:
-            return False
-
-        try:
-            self.filename = os.path.basename(file_path)
-            self.path = file_path
-            db.session.commit()
-
-            logger.info(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' updated successfully")
-            return True
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Error updating StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}': {e}")
             return False

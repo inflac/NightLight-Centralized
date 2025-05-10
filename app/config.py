@@ -45,7 +45,7 @@ class Config:
     CORS_ALLOWED_WEBSITES = os.getenv("CORS_ALLOWED_WEBSITES", "")
 
     # File management
-    UPLOAD_FOLDER = "../instance/nightlines"
+    UPLOAD_FOLDER = "./instance/nightlines"
 
     @classmethod
     def configure_cors(cls, app):
