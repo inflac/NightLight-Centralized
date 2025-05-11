@@ -1,8 +1,10 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
+from app.validation import validate_request_body, validate_status_value
 from app.routes.api_models import error_model, success_model, status_model, set_status_model
 from app.models import Status
+
 
 
 admin_status_ns = Namespace(
@@ -21,33 +23,19 @@ class StatusResource(Resource):
     @admin_status_ns.response(200, "Success", ad_st_success_model)
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
     def post(self):
-        data = request.get_json()
-        if not data:
-            abort(
-                400,
-                message="Invalid JSON payload. Request body is missing or malformed")
-
+        """Add a new status"""
         # Dynamically get required fields from the model
         required_fields = [
             field_name for field_name, _ in ad_st_status_model.items()
         ]
 
-        # Validate and sanitize input
-        sanitized_data = {}
-        for field in required_fields:
-            value = data.get(field, "").strip()
-            if not value:
-                abort(
-                    400, message=f"Missing or empty required field: '{field}'")
-            if len(value) > 200:
-                abort(
-                    400, message=f"'{field}' is too long (max 200 characters)")
-            sanitized_data[field] = value
+        data = request.get_json()
+        validate_request_body(data, required_fields)
 
-        status_name = sanitized_data.get("status_name")
-        sanitized_data.pop("status_name")
+        status_name = data["status_name"]
+        data.pop("status_name")
 
-        status = Status.add_status(name=status_name, **sanitized_data)
+        status = Status.add_status(name=status_name, **data)
         if not status:
             abort(
                 400,
@@ -61,19 +49,18 @@ class StatusResource(Resource):
     @admin_status_ns.response(200, "Success", ad_st_success_model)
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
     def delete(self):
+        """Remove a status"""
         data = request.get_json()
-        if not data or "status" not in data:
-            abort(400, message="Missing 'status' field in the request body")
+        validate_request_body(data, "status")
 
-        name = data["status"]
-        if len(name) > 15 or not name.isalnum():
-            abort(400, message="The value for 'status' is not a valid status name")
+        status_value = data["status"]
+        validate_status_value(status_value)
 
-        status = Status.remove_status(name)
+        status = Status.remove_status(status_value)
         if not status:
-            abort(400, f"Status '{name}' could not be removed")
+            abort(400, f"Status '{status_value}' could not be removed")
 
-        response = {"message": f"Status '{name}' removed successfully"}
+        response = {"message": f"Status '{status_value}' removed successfully"}
         return response, 200
 
 # Route to list all statuses
@@ -82,6 +69,7 @@ class StatusListResource(Resource):
     @admin_status_ns.response(200, "Success", [ad_st_status_model])
     @admin_status_ns.response(404, "Statuses Not Found", ad_st_error_model)
     def get(self):
+        """List all selectable statuses"""
         statuses = Status.list_statuses()
 
         response = [{

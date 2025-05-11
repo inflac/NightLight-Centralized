@@ -1,6 +1,7 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
+from app.validation import validate_filters
 from app.routes.api_models import error_model, nightline_status_model
 from app.models import Nightline, Status
 from app.routes.decorators import sanitize_name
@@ -55,26 +56,8 @@ class PublicNightlineListResource(Resource):
         language_filter = request.args.get("language")
         now_filter = request.args.get("now")
 
-        # Validate status filter
-        if status_filter and (not isinstance(status_filter, str) or len(
-                status_filter) > 15 or not status_filter.isalnum()):
-            abort(
-                400,
-                message=f"Invalid value for status filter. Only valid status names are allowed")
-
-        # Validate language filter
-        if language_filter and language_filter not in ["en", "de"]:
-            abort(
-                400,
-                message=f"Invalid value for language filter. Only 'en' or 'de' are allowed")
-
-        # Validate now filter
-        if now_filter is not None:
-            if now_filter in ["true", "false"]:
-                now_filter = now_filter.lower() == "true"
-            else:
-                abort(
-                    400, message="Invalid value for 'now' filter. Use 'true' or 'false'")
+        validate_filters(status_filter, language_filter, now_filter)
+        now_filter = now_filter.lower() == "true"
 
         # Fetch filtered nightlines
         nightlines = Nightline.list_nightlines(
