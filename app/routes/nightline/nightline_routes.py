@@ -235,7 +235,7 @@ class NightlineStoryResource(Resource):
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
     @nightline_ns.response(500, "Story Error", nl_error_model)
     def post(self, name):
-        """Add a story slide for the given nightline"""
+        """Add a story slide for the given nightline and status"""
         # Parse the request body
         args = upload_parser.parse_args()
         validate_request_body(args, ["status", "image"])
@@ -260,3 +260,32 @@ class NightlineStoryResource(Resource):
 
         response = {"message": f"Story for status {status_value} added successfully"}
         return response, 201
+
+    @sanitize_name
+    @nightline_ns.response(200, "Success", nl_success_model)
+    @nightline_ns.response(400, "Bad Request", nl_error_model)
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
+    @nightline_ns.response(500, "Story Error", nl_error_model)
+    def delete(self, name):
+        """Remove a story slide for the given nightline and status"""
+        # Parse the request body
+        args = upload_parser.parse_args()
+        validate_request_body(args, ["status"])
+
+        status_value = args['status']
+        validate_status_value(status_value)  # Validate status name format
+
+        nightline = Nightline.get_nightline(name)
+        if not nightline:
+            abort(404, f"Nightline '{name}' not found")
+
+        nightline_status = next(
+            (nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value),
+            None
+        )
+
+        if not StorySlide.remove_story_slide(nightline_status):
+            abort(500, f"Deleting a story slide for status {status_value} failed")
+
+        response = {"message": f"Story for status {status_value} removed successfully"}
+        return response, 200
