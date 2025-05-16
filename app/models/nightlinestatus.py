@@ -27,6 +27,12 @@ class NightlineStatus(db.Model):
     )
 
     @classmethod
+    def get_nightline_status(nightline_id: int, status_id: int) -> "NightlineStatus":
+        nightline_status = NightlineStatus.query.filter_by(
+                nightline_id=nightline_id, status_id=status_id).first()
+        return nightline_status
+
+    @classmethod
     def add_new_status_for_all_nightlines(cls, status: "Status") -> bool:
         from .nightline import Nightline
         """Create NightlineStatus entries for all Nightlines for a given Status"""

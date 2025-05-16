@@ -1,7 +1,7 @@
 # Todos
 * Add route to set/remove a story slide [Done]
     * store story slide in NightlineStatus
-* Implement check to only allow setting story post to true if a story slide is set
+* Implement check to only allow setting story post to true if a story slide is set [Done]
 * integrate instagram story posts
     * trigger story post on status change
         * Call check for 'instagram_story' and 'story_slide'

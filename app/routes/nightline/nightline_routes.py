@@ -97,6 +97,7 @@ class NightlineStatusConfigResource(Resource):
         if not isinstance(instagram_story, bool):
             abort(400, "'instagram_story' must be a boolean")
 
+        # Validate status
         status_value = data["status"]
         validate_status_value(status_value)  # Validate status name format
 
@@ -105,6 +106,10 @@ class NightlineStatusConfigResource(Resource):
             abort(404, f"Nightline '{name}' not found")
 
         status = Status.get_status(status_value)
+
+        # Validate a story slide is set if instagram_story == 'True'
+        if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.id):
+            abort(400, f"No story slide set for status '{status.name}' of nightline '{nightline.name}'")
 
         if not NightlineStatus.update_instagram_story(
                 nightline, status, instagram_story):

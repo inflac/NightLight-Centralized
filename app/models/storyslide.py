@@ -18,7 +18,6 @@ class StorySlide(db.Model):
         nullable=False)
     nightline_status = db.relationship("NightlineStatus", back_populates="instagram_story_slide")
 
-
     @classmethod
     def __save_story_slide_file(cls, file, nightline_status: "NightlineStatus", overwrite=False) -> Optional[os.PathLike]:
         """Handles saving the file and checks if the file already exists."""
