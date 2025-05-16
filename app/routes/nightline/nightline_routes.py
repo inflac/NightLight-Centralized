@@ -57,6 +57,10 @@ class NightlineStatusResource(Resource):
         if not status:
             abort(500, f"Updating the status failed")
 
+        # If configured post an instagram story
+        if not nightline.post_instagram_story(status=status):
+            abort(500, f"Status updated but uploading an instagram story post failed")
+
         response = {
             "message": f"Status successfully updated to: {status_value}"}
         return response, 200
@@ -75,6 +79,10 @@ class NightlineStatusResource(Resource):
         status = nightline.reset_status()
         if not status:
             abort(500, f"Resetting the status failed")
+
+        # Remove a story post
+        if not nightline.delete_instagram_story():
+            abort(500, f"Staus successfully reset but deleting the current instagram story failed")
 
         response = {"message": "Status successfully reset to: 'default'"}
         return response, 200

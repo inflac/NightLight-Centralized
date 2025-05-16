@@ -6,6 +6,7 @@ from .status import Status
 from .apikey import ApiKey
 from .nightlinestatus import NightlineStatus
 from .instagram import InstagramAccount
+from app.story_post import post_story, delete_story_by_id
 from app.logger import logger
 
 
@@ -187,6 +188,11 @@ class Nightline(db.Model):
         self.now = now
         db.session.commit()
 
+    def set_instagram_media_id(self, media_id: str) -> None:
+        logger.debug(f"Setting media id for a status of nightline '{self.name}'")
+        self.instagram_media_id = media_id
+        db.session.commit()
+
     def get_api_key(self) -> Optional[ApiKey]:
         """Get the API key"""
         return ApiKey.get_api_key(self.id)
@@ -275,6 +281,35 @@ class Nightline(db.Model):
                 f"No Instagram account found for Nightline {
                     self.name}.")
             return False
+
+    def post_instagram_story(self, status: Status) -> bool:
+        instagram_username = self.instagram_account.username
+        instagram_password = self.instagram_account.get_password()
+        nightline_status = NightlineStatus.get_nightline_status(status_id=status.id)
+        story_slide_path = nightline_status.path
+
+        # Check if posting an instagram story is configured
+        if not nightline_status.instagram_story or not nightline_status.instagram_story_slide:
+            logger.info(f"Posting an instagram story is not configured for status '{status.name}' of nightline '{self.name}'")
+            return False
+
+        # Post the story
+        media_id = post_story(story_slide_path, instagram_username, instagram_password)
+        if media_id:
+            self.set_instagram_media_id(media_id)
+            return True
+        else:
+            return False
+
+    def delete_instagram_story(self) -> bool:
+        if not self.instagram_media_id:
+            logger.debug("No story to delete because no media id is set")
+            return True
+        
+        if delete_story_by_id(self.instagram_media_id):
+            self.set_instagram_media_id(None)
+            return True
+        return False
 
     def __repr__(self) -> str:
         return f"Nightline('{self.name}')"
