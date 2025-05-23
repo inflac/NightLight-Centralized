@@ -1,6 +1,7 @@
 import os
 
 from typing import Optional
+from werkzeug.datastructures.file_storage import FileStorage
 
 from app.logger import logger
 
@@ -8,8 +9,7 @@ from app.logger import logger
 ALLOWED_IMAGE_EXTENSIONS=["png", "jpg", "jpeg"]
 
 
-# TODO add type for file
-def validate_file_extension(file) -> Optional[str]:
+def validate_file_extension(file: FileStorage) -> Optional[str]:
     """Validate the a file extension"""
     extension = file.filename.rsplit(".", maxsplit=1)[1].lower()
     if extension not in ALLOWED_IMAGE_EXTENSIONS:
@@ -38,8 +38,7 @@ def check_file_already_exists(base_file_path: os.PathLike) -> Optional[os.PathLi
             return path
     return None
 
-# TODO add type for file
-def save_file(file, file_path: os.PathLike) -> bool:
+def save_file(file: FileStorage, file_path: os.PathLike) -> bool:
     """Save the file to the specified path."""
     try:
         file.save(file_path)

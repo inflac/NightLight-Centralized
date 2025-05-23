@@ -1,2 +1,10 @@
 [tool.autopep8]
 ignore = ["E302"]  # Don't enforce two blank lines before top-level functions
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "--cov=app --cov-report=term-missing --cov-report=html --cov-config=coverage.ini"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

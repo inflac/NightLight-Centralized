@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+from werkzeug.datastructures.file_storage import FileStorage
 
 from ..db import db
 from app.filehandler import validate_file_extension, ensure_storage_path_exists, check_file_already_exists, save_file, remove_file 
@@ -19,7 +20,7 @@ class StorySlide(db.Model):
     nightline_status = db.relationship("NightlineStatus", back_populates="instagram_story_slide")
 
     @classmethod
-    def __save_story_slide_file(cls, file, nightline_status: "NightlineStatus", overwrite=False) -> Optional[os.PathLike]:
+    def __save_story_slide_file(cls, file: FileStorage, nightline_status: "NightlineStatus", overwrite=False) -> Optional[os.PathLike]:
         """Handles saving the file and checks if the file already exists."""
         
         # Validate file type
@@ -65,7 +66,7 @@ class StorySlide(db.Model):
         return story_slide
 
     @classmethod
-    def update_story_slide(cls, file, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
+    def update_story_slide(cls, file: FileStorage, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
         """Create a story slide object, referencing the file and filepath"""
         # Save the file and get the file path
         file_path = cls.__save_story_slide_file(file, nightline_status, overwrite=True)

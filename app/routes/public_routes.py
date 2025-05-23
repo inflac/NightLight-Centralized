@@ -57,7 +57,8 @@ class PublicNightlineListResource(Resource):
         now_filter = request.args.get("now")
 
         validate_filters(status_filter, language_filter, now_filter)
-        now_filter = now_filter.lower() == "true"
+        if now_filter:
+            now_filter = now_filter.lower() == "true"
 
         # Fetch filtered nightlines
         nightlines = Nightline.list_nightlines(
@@ -75,4 +76,5 @@ class PublicNightlineListResource(Resource):
             'description_now_en': nightline.status.description_now_en,
             'now': nightline.now,
         } for nightline in nightlines]
+
         return response, 200

@@ -7,7 +7,7 @@
         * Call check for 'instagram_story' and 'story_slide'
         * call login on story post
         * store session in InstagramAccount
-* Integrate story delete on status reset
+* Integrate story delete on status reset [Done]
 * Add authentication for routes
 * Reevaluate error handling and rollbacks in db models
 * Add tests
