@@ -3,6 +3,9 @@ canceled.png
 english.png
 german.png
 
+# Testing
+coverage_html_report/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
