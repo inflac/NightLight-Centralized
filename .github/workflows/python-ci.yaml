@@ -79,11 +79,3 @@ jobs:
           name: pytest-logs-${{ matrix.python-version }}
           path: pytest.log
           overwrite: true
-
-      - name: Upload pylint logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pylint-logs-${{ matrix.python-version }}
-          path: pylint.log
-          overwrite: true
