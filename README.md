@@ -1,7 +1,7 @@
 # NightLight Centralized
 
-[![CI](https://github.com/inflac/NightLight-Centralized/actions/workflows/python-ci.yml/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/python-ci.yml)
-[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
+[![CI](https://github.com/inflac/NightLight-Centralized/actions/workflows/.github/workflows/python-ci.yaml/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/python-ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
 
 
 # Todos
