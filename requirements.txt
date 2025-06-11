@@ -10,3 +10,4 @@ flask-restx
 cryptography
 autopep8
 pylint
+pytest-cov
