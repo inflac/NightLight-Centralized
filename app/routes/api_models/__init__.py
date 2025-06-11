@@ -10,4 +10,5 @@ __all__ = [
     "set_now_model",
     "nightline_model",
     "nightline_status_model",
-    "instagram_create_model"]
+    "instagram_create_model",
+]

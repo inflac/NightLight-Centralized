@@ -1,19 +1,24 @@
 from flask_restx import Namespace, Resource, abort
 
-from app.routes.api_models import error_model, success_model, api_key_model, admin_nightline_model
 from app.models import Nightline
+from app.routes.api_models import (
+    admin_nightline_model,
+    api_key_model,
+    error_model,
+    success_model,
+)
 from app.routes.decorators import sanitize_name
 
-
 admin_nightline_ns = Namespace(
-    "admin nightline",
-    description="Admin routes for nightlines - API key required")
+    "admin nightline", description="Admin routes for nightlines - API key required"
+)
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 ad_nl_success_model = admin_nightline_ns.model("Success", success_model)
 ad_nl_api_key_model = admin_nightline_ns.model("API-Key", api_key_model)
 ad_nl_admin_nightline_model = admin_nightline_ns.model(
-    "Admin Nightline", admin_nightline_model)
+    "Admin Nightline", admin_nightline_model
+)
 
 
 @admin_nightline_ns.route("/<string:name>")
@@ -46,7 +51,8 @@ class NightlineResource(Resource):
         if not nightline:
             abort(
                 400,
-                message=f"Nightline '{name}' could not be added due to invalid data or duplication")
+                message=f"Nightline '{name}' could not be added due to invalid data or duplication",
+            )
 
         response = {"message": f"Nightline '{name}' added successfully"}
         return response, 200
@@ -62,6 +68,7 @@ class NightlineResource(Resource):
 
         response = {"message": f"Nightline '{name}' removed successfully"}
         return response, 200
+
 
 @admin_nightline_ns.route("/key/<string:name>")
 class ApiKeyResource(Resource):

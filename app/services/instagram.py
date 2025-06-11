@@ -1,12 +1,12 @@
-import os
 import logging
+import os
 
+from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
-from dotenv import load_dotenv
-
 logger = logging.getLogger(__name__)
+
 
 def login_user(cl: Client) -> bool:
     """
@@ -36,7 +36,8 @@ def login_user(cl: Client) -> bool:
                 cl.get_timeline_feed()
             except LoginRequired:
                 logger.info(
-                    "Session is invalid, need to login via username and password")
+                    "Session is invalid, need to login via username and password"
+                )
 
                 old_session = cl.get_settings()
 
@@ -47,26 +48,23 @@ def login_user(cl: Client) -> bool:
                 cl.login(USERNAME, PASSWORD)
             login_via_session = True
         except Exception as e:
-            logger.info(
-                "Couldn't login user using session information: %s" %
-                e)
+            logger.info("Couldn't login user using session information: %s" % e)
 
     if not login_via_session:
         try:
             logger.info(
-                "Attempting to login via username and password. username: %s" %
-                USERNAME)
+                "Attempting to login via username and password. username: %s" % USERNAME
+            )
             if cl.login(USERNAME, PASSWORD):
                 login_via_pw = True
                 cl.dump_settings("session.json")
         except Exception as e:
-            logger.info(
-                "Couldn't login user using username and password: %s" %
-                e)
+            logger.info("Couldn't login user using username and password: %s" % e)
 
     if not login_via_pw and not login_via_session:
         return False
     return True
+
 
 def post_story(image_path: os.PathLike):
     """
@@ -86,12 +84,12 @@ def post_story(image_path: os.PathLike):
     try:
         resp = cl.photo_upload_to_story(image_path)
         media_id = resp.pk
-        logger.info(
-            f"Story {image_path} with ID: {media_id}, posted successfully")
+        logger.info(f"Story {image_path} with ID: {media_id}, posted successfully")
         return media_id
     except Exception as e:
         logger.error(f"Failed to post story: {e}")
     return
+
 
 def delete_story_by_id(media_id: str) -> bool:
     """
@@ -109,6 +107,7 @@ def delete_story_by_id(media_id: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to delete story with ID {media_id}: {e}")
     return False
+
 
 def instagram_post_for_status(status: str) -> bool:
     load_dotenv()

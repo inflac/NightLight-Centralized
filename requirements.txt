@@ -8,6 +8,8 @@ instagrapi
 pillow
 flask-restx
 cryptography
-autopep8
 pylint
+isort
+mypy
+black
 pytest-cov

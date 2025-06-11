@@ -1,12 +1,11 @@
 import os
-
 from typing import Optional
+
 from werkzeug.datastructures.file_storage import FileStorage
 
 from app.logger import logger
 
-
-ALLOWED_IMAGE_EXTENSIONS=["png", "jpg", "jpeg"]
+ALLOWED_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg"]
 
 
 def validate_file_extension(file: FileStorage) -> Optional[str]:
@@ -16,6 +15,7 @@ def validate_file_extension(file: FileStorage) -> Optional[str]:
         logger.warning(f"Invalid file extension for file: {file.filename}")
         return None
     return extension
+
 
 def ensure_storage_path_exists(storage_path: str) -> bool:
     """Ensure the storage path exists, creating it if necessary."""
@@ -29,6 +29,7 @@ def ensure_storage_path_exists(storage_path: str) -> bool:
             return False
     return True
 
+
 def check_file_already_exists(base_file_path: os.PathLike) -> Optional[os.PathLike]:
     """Check if a file with the same base name already exists."""
     for ext in ALLOWED_IMAGE_EXTENSIONS:
@@ -37,6 +38,7 @@ def check_file_already_exists(base_file_path: os.PathLike) -> Optional[os.PathLi
             logger.debug(f"Found an already existing file: '{base_file_path}'")
             return path
     return None
+
 
 def save_file(file: FileStorage, file_path: os.PathLike) -> bool:
     """Save the file to the specified path."""
@@ -47,6 +49,7 @@ def save_file(file: FileStorage, file_path: os.PathLike) -> bool:
     except Exception as e:
         logger.error(f"Error saving file '{file_path}': {e}")
         return False
+
 
 def remove_file(file_path: os.PathLike) -> bool:
     """Safely remove a file from the filesystem"""

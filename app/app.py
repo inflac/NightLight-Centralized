@@ -1,11 +1,12 @@
-from flask import Flask, Blueprint
+from flask import Blueprint, Flask
 from flask_restx import Api
 from sqlalchemy.exc import OperationalError
 
 from app.config import Config
 from app.db import db
-from app.setup import preinitialize_statuses
 from app.routes import *
+from app.setup import preinitialize_statuses
+
 
 def create_app():
     app = Flask(__name__)
@@ -38,7 +39,8 @@ def create_app():
         title="NightLight-Centralized API",
         version="1.0",
         description="API for managing the availability status of Nightlines",
-        doc=Config.API_DOC_PATH)
+        doc=Config.API_DOC_PATH,
+    )
 
     # Register public routes
     api.add_namespace(public_ns, path="/public")

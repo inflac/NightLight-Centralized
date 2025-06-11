@@ -1,24 +1,56 @@
-{
+    {
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Lint & Format with pylint and autopep8",
+            "label": "Python: Format imports with isort",
             "type": "shell",
-            "command": "${env:COMSPEC} -Command .venv\\Scripts\\Activate && pylint --errors-only $(git ls-files '*.py') && .venv\\Scripts\\autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "command": ".venv/bin/isort $(git ls-files '*.py')",
             "windows": {
-                "command": ". .venv\\Scripts\\Activate; pylint --errors-only $(git ls-files '*.py'); .venv\\Scripts\\autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
-            },
-            "linux": {
-                "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
-            },
-            "osx": {
-                "command": "source .venv/bin/activate && pylint --errors-only $(git ls-files '*.py') && .venv/bin/autopep8 --in-place --aggressive --global-config pyproject.toml $(git ls-files '*.py')"
-            }
+                "command": ".venv\\Scripts\\isort.exe $(git ls-files '*.py')"
+        },
+        "problemMatcher": []
+        },
+        {
+            "label": "Python: Format code with black",
+            "type": "shell",
+            "command": ".venv/bin/black $(git ls-files '*.py')",
+            "windows": {
+                "command": ".venv\\Scripts\\black.exe $(git ls-files '*.py')"
+        },
+            "problemMatcher": []
+        },
+        {
+            "label": "Python: Lint with pylint",
+            "type": "shell",
+            "command": ".venv/bin/pylint --errors-only $(git ls-files '*.py')",
+            "windows": {
+                "command": ".venv\\Scripts\\pylint.exe --errors-only $(git ls-files '*.py')"
+        },
+            "problemMatcher": []
+        },
+        {
+            "label": "Python: Type check with mypy",
+            "type": "shell",
+            "command": ".venv/bin/mypy app/",
+            "windows": {
+                "command": ".venv\\Scripts\\mypy.exe app\\"
+        },
+            "problemMatcher": []
+        },
+        {
+        "label": "Lint & Format",
+        "dependsOn": [
+            "Python: Format imports with isort",
+            "Python: Format code with black",
+            "Python: Lint with pylint",
+            "Python: Type check with mypy"
+        ],
+        "dependsOrder": "sequence",
+        "runOptions": {
+            "runOn": "default"
+        },
+        "type": "shell",
+        "problemMatcher": []
         }
     ]
 }

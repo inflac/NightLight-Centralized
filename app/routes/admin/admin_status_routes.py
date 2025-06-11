@@ -1,21 +1,25 @@
 from flask import request
 from flask_restx import Namespace, Resource, abort
 
-from app.validation import validate_request_body, validate_status_value
-from app.routes.api_models import error_model, success_model, status_model, set_status_model
 from app.models import Status
-
-
+from app.routes.api_models import (
+    error_model,
+    set_status_model,
+    status_model,
+    success_model,
+)
+from app.validation import validate_request_body, validate_status_value
 
 admin_status_ns = Namespace(
-    "admin status",
-    description="Admin routes for statuses - API key required")
+    "admin status", description="Admin routes for statuses - API key required"
+)
 
 # Define the request and response model for the status
 ad_st_error_model = admin_status_ns.model("Error", error_model)
 ad_st_success_model = admin_status_ns.model("Success", success_model)
 ad_st_status_model = admin_status_ns.model("Status", status_model)
 ad_st_set_status_model = admin_status_ns.model("Set Status", set_status_model)
+
 
 @admin_status_ns.route("/")
 class StatusResource(Resource):
@@ -25,9 +29,7 @@ class StatusResource(Resource):
     def post(self):
         """Add a new status"""
         # Dynamically get required fields from the model
-        required_fields = [
-            field_name for field_name, _ in ad_st_status_model.items()
-        ]
+        required_fields = [field_name for field_name, _ in ad_st_status_model.items()]
 
         data = request.get_json()
         validate_request_body(data, required_fields)
@@ -39,7 +41,8 @@ class StatusResource(Resource):
         if not status:
             abort(
                 400,
-                message=f"Status '{status_name}' could not be added due to invalid data or duplication")
+                message=f"Status '{status_name}' could not be added due to invalid data or duplication",
+            )
 
         response = {"message": f"Status '{status_name}' added successfully"}
         return response, 200
@@ -63,6 +66,7 @@ class StatusResource(Resource):
         response = {"message": f"Status '{status_value}' removed successfully"}
         return response, 200
 
+
 # Route to list all statuses
 @admin_status_ns.route("/all")
 class StatusListResource(Resource):
@@ -72,13 +76,16 @@ class StatusListResource(Resource):
         """List all selectable statuses"""
         statuses = Status.list_statuses()
 
-        response = [{
-            'status_name': status.name,
-            'description_de': status.description_de,
-            'description_en': status.description_en,
-            'description_now_de': status.description_now_de,
-            'description_now_en': status.description_now_en,
-        } for status in statuses]
+        response = [
+            {
+                "status_name": status.name,
+                "description_de": status.description_de,
+                "description_en": status.description_en,
+                "description_now_de": status.description_now_de,
+                "description_now_en": status.description_now_en,
+            }
+            for status in statuses
+        ]
 
         if not response:
             abort(404, "No statuses found")

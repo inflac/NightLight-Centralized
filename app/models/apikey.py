@@ -3,18 +3,15 @@ import secrets
 from app.db import db
 from app.logger import logger
 
+
 class ApiKey(db.Model):
     __tablename__ = "api_keys"
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(512), nullable=False, unique=True)
-    nightline_id = db.Column(
-        db.Integer,
-        db.ForeignKey("nightlines.id"),
-        nullable=False)
+    nightline_id = db.Column(db.Integer, db.ForeignKey("nightlines.id"), nullable=False)
     nightline = db.relationship(
-        "Nightline",
-        backref="api_key",
-        foreign_keys=[nightline_id])
+        "Nightline", backref="api_key", foreign_keys=[nightline_id]
+    )
 
     @staticmethod
     def generate_api_key(length: int = 256):

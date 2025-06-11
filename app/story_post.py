@@ -1,16 +1,15 @@
-import os
 import logging
-
+import os
 from typing import Optional
 
+from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
-from dotenv import load_dotenv
-
 logger = logging.getLogger(__name__)
 
-def login_user(cl:Client, username: str, password: str) -> bool:
+
+def login_user(cl: Client, username: str, password: str) -> bool:
     """
     Attempts to login to Instagram using either the provided session information
     or the provided username and password.
@@ -32,7 +31,9 @@ def login_user(cl:Client, username: str, password: str) -> bool:
             try:
                 cl.get_timeline_feed()
             except LoginRequired:
-                logger.info("Session is invalid, need to login via username and password")
+                logger.info(
+                    "Session is invalid, need to login via username and password"
+                )
 
                 old_session = cl.get_settings()
 
@@ -47,7 +48,9 @@ def login_user(cl:Client, username: str, password: str) -> bool:
 
     if not login_via_session:
         try:
-            logger.info("Attempting to login via username and password. username: %s" % USERNAME)
+            logger.info(
+                "Attempting to login via username and password. username: %s" % USERNAME
+            )
             if cl.login(username, password):
                 login_via_pw = True
                 cl.dump_settings("session.json")
@@ -57,6 +60,7 @@ def login_user(cl:Client, username: str, password: str) -> bool:
     if not login_via_pw and not login_via_session:
         return False
     return True
+
 
 def post_story(image_path: os.PathLike, username: str, password: str) -> Optional[str]:
     """
@@ -81,6 +85,7 @@ def post_story(image_path: os.PathLike, username: str, password: str) -> Optiona
     except Exception as e:
         logger.error(f"Failed to post story: {e}")
     return
+
 
 def delete_story_by_id(media_id: str) -> bool:
     """

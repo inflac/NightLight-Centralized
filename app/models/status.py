@@ -1,12 +1,13 @@
 from typing import Optional
 
+from app.logger import logger
+
 from ..db import db
 from .nightlinestatus import NightlineStatus
-from app.logger import logger
 
 
 class Status(db.Model):
-    __tablename__ = 'statuses'
+    __tablename__ = "statuses"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(15), unique=True, nullable=False)
     description_de = db.Column(db.String(200), nullable=False)
@@ -27,8 +28,14 @@ class Status(db.Model):
         return status
 
     @classmethod
-    def add_status(cls, name: str, description_de: str, description_en: str,
-                   description_now_de: str, description_now_en: str) -> Optional["Status"]:
+    def add_status(
+        cls,
+        name: str,
+        description_de: str,
+        description_en: str,
+        description_now_de: str,
+        description_now_en: str,
+    ) -> Optional["Status"]:
         """Add a new status to the db"""
         logger.debug(f"Adding new status: {name}")
 
@@ -42,7 +49,8 @@ class Status(db.Model):
                 description_de=description_de,
                 description_en=description_en,
                 description_now_de=description_now_de,
-                description_now_en=description_now_en)
+                description_now_en=description_now_en,
+            )
             db.session.add(new_status)
             db.session.commit()
 
