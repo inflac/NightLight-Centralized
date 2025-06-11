@@ -9,9 +9,7 @@ class ApiKey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(512), nullable=False, unique=True)
     nightline_id = db.Column(db.Integer, db.ForeignKey("nightlines.id"), nullable=False)
-    nightline = db.relationship(
-        "Nightline", backref="api_key", foreign_keys=[nightline_id]
-    )
+    nightline = db.relationship("Nightline", backref="api_key", foreign_keys=[nightline_id])
 
     @staticmethod
     def generate_api_key(length: int = 256):

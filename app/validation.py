@@ -24,16 +24,10 @@ def validate_request_body(data: dict, keys: list) -> bool:
     return True
 
 
-def validate_filters(
-    status_filter: str = None, language_filter: str = None, now_filter: str = None
-) -> None:
+def validate_filters(status_filter: str = None, language_filter: str = None, now_filter: str = None) -> None:
     """Validate the value of filter parameters"""
     if status_filter:  # Validate status filter
-        if (
-            (not isinstance(status_filter, str))
-            or (len(status_filter) > 15)
-            or (not status_filter.isalnum())
-        ):
+        if (not isinstance(status_filter, str)) or (len(status_filter) > 15) or (not status_filter.isalnum()):
             abort(
                 400,
                 message=f"Invalid value for status filter. Only valid status names are allowed",
@@ -53,11 +47,7 @@ def validate_filters(
 
 def validate_status_value(status_value: str) -> None:
     """Validate the format of a status parameter"""
-    if (
-        not isinstance(status_value, str)
-        or not status_value.strip()
-        or len(status_value) > 15
-    ):
+    if not isinstance(status_value, str) or not status_value.strip() or len(status_value) > 15:
         abort(400, "'status' must be a non-empty valid status name")
 
 
@@ -70,9 +60,7 @@ def validate_instagram_credentials(username: str, password: str) -> None:
 def validate_image(image_file: FileStorage) -> None:
     """Validate an image file"""
     # Validate image content type
-    if (not image_file) or (
-        image_file.mimetype not in ["image/jpeg", "image/png", "image/gif"]
-    ):
+    if (not image_file) or (image_file.mimetype not in ["image/jpeg", "image/png", "image/gif"]):
         print(image_file.mimetype)
         abort(400, "Unsupported image type")
         return

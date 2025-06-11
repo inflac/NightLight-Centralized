@@ -19,29 +19,19 @@ from app.validation import (
     validate_status_value,
 )
 
-nightline_ns = Namespace(
-    "nightline", description="Routes for nightlines - API key required"
-)
+nightline_ns = Namespace("nightline", description="Routes for nightlines - API key required")
 
 # Define the request model for the update status and now boolean
 nl_error_model = nightline_ns.model("Error", error_model)
 nl_success_model = nightline_ns.model("Success", success_model)
 nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
-nl_set_status_config_model = nightline_ns.model(
-    "Set Status Config", set_status_config_model
-)
+nl_set_status_config_model = nightline_ns.model("Set Status Config", set_status_config_model)
 nl_set_now_model = nightline_ns.model("Set Now", set_now_model)
-nl_instagram_create_model = nightline_ns.model(
-    "Instagram Credentials", instagram_create_model
-)
+nl_instagram_create_model = nightline_ns.model("Instagram Credentials", instagram_create_model)
 
 upload_parser = reqparse.RequestParser()
-upload_parser.add_argument(
-    "image", location="files", type=FileStorage, required=True, help="Image file"
-)
-upload_parser.add_argument(
-    "status", location="form", type=str, required=True, help="Status name"
-)
+upload_parser.add_argument("image", location="files", type=FileStorage, required=True, help="Image file")
+upload_parser.add_argument("status", location="form", type=str, required=True, help="Status name")
 
 
 @nightline_ns.route("/<string:name>/status")
@@ -114,7 +104,7 @@ class NightlineStatusConfigResource(Resource):
         """Configure a status of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
-        validate_request_body(data, ["status", instagram_story])
+        validate_request_body(data, ["status", "instagram_story"])
 
         instagram_story = data.get("instagram_story")
         if not isinstance(instagram_story, bool):
@@ -131,17 +121,10 @@ class NightlineStatusConfigResource(Resource):
         status = Status.get_status(status_value)
 
         # Validate a story slide is set if instagram_story == 'True'
-        if instagram_story and not NightlineStatus.get_nightline_status(
-            nightline.id, status.id
-        ):
-            abort(
-                400,
-                f"No story slide set for status '{status.name}' of nightline '{nightline.name}'",
-            )
+        if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.id):
+            abort(400, f"No story slide set for status '{status.name}' of nightline '{nightline.name}'")
 
-        if not NightlineStatus.update_instagram_story(
-            nightline, status, instagram_story
-        ):
+        if not NightlineStatus.update_instagram_story(nightline, status, instagram_story):
             abort(500, f"Updating the status failed")
 
         response = {"message": f"Status successfully updated"}
@@ -287,11 +270,7 @@ class NightlineStoryResource(Resource):
             abort(404, f"Nightline '{name}' not found")
 
         nightline_status = next(
-            (
-                nightline_status
-                for nightline_status in nightline.nightline_statuses
-                if nightline_status.status.name == status_value
-            ),
+            (nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value),
             None,
         )
 
@@ -320,11 +299,7 @@ class NightlineStoryResource(Resource):
             abort(404, f"Nightline '{name}' not found")
 
         nightline_status = next(
-            (
-                nightline_status
-                for nightline_status in nightline.nightline_statuses
-                if nightline_status.status.name == status_value
-            ),
+            (nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value),
             None,
         )
 

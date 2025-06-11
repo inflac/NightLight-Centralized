@@ -8,3 +8,9 @@ filterwarnings = [
 
 [tool.isort]
 profile = "black"
+
+[tool.black]
+line-length = 140
+
+[tool.pylint."MESSAGES CONTROL"]
+max-line-length = 140

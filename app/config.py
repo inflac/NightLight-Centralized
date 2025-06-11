@@ -34,9 +34,7 @@ class Config:
         raise ValueError("ENCRYPTION_PASSWORD is not set in .env!")
 
     # Toggle generating API documentation
-    __generate_api_doc = (
-        os.getenv("GENERATE_API_DOCUMENTATION", "false").lower() == "true"
-    )
+    __generate_api_doc = os.getenv("GENERATE_API_DOCUMENTATION", "false").lower() == "true"
     API_DOC_PATH = "/docs" if __generate_api_doc else False  # Set / if True, else False
 
     # CORS
@@ -52,9 +50,7 @@ class Config:
         if allowed_websites == "*":
             origins = "*"
         elif isinstance(allowed_websites, str):
-            origins = [
-                site.strip() for site in allowed_websites.split(",") if site.strip()
-            ]
+            origins = [site.strip() for site in allowed_websites.split(",") if site.strip()]
         else:
             origins = ""
         CORS(app, origins=origins)

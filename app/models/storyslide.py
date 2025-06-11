@@ -19,23 +19,13 @@ from ..db import db
 class StorySlide(db.Model):
     __tablename__ = "storyslides"
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(
-        db.String(20)
-    )  # max length = max status name + . + file extension = 15 + 1 + 3
-    path = db.Column(
-        db.String(100)
-    )  # max length = ./instance/nightlines/[22] nl-xy[50] /[1] status[15] .png[4] = 92
-    nightline_status_id = db.Column(
-        db.Integer, db.ForeignKey("nightline_statuses.id"), unique=True, nullable=False
-    )
-    nightline_status = db.relationship(
-        "NightlineStatus", back_populates="instagram_story_slide"
-    )
+    filename = db.Column(db.String(20))  # max length = max status name + . + file extension = 15 + 1 + 3
+    path = db.Column(db.String(100))  # max length = ./instance/nightlines/[22] nl-xy[50] /[1] status[15] .png[4] = 92
+    nightline_status_id = db.Column(db.Integer, db.ForeignKey("nightline_statuses.id"), unique=True, nullable=False)
+    nightline_status = db.relationship("NightlineStatus", back_populates="instagram_story_slide")
 
     @classmethod
-    def __save_story_slide_file(
-        cls, file: FileStorage, nightline_status: "NightlineStatus", overwrite=False
-    ) -> Optional[os.PathLike]:
+    def __save_story_slide_file(cls, file: FileStorage, nightline_status: "NightlineStatus", overwrite=False) -> Optional[os.PathLike]:
         """Handles saving the file and checks if the file already exists."""
 
         # Validate file type
@@ -44,9 +34,7 @@ class StorySlide(db.Model):
             return None
 
         # Create and ensure the storage path exists
-        storage_path = os.path.join(
-            Config.UPLOAD_FOLDER, nightline_status.nightline.name
-        )
+        storage_path = os.path.join(Config.UPLOAD_FOLDER, nightline_status.nightline.name)
         if not ensure_storage_path_exists(storage_path):
             return None
 
@@ -78,16 +66,10 @@ class StorySlide(db.Model):
     @classmethod
     def get_story_slide_by_nightline_status(cls, nightline_status: "NightlineStatus"):
         """Fetch a story slide by a nightline status"""
-        logger.debug(
-            f"Fetching story slide for nightline status with ID: '{nightline_status.id}'"
-        )
-        story_slide = cls.query.filter_by(
-            nightline_status_id=nightline_status.id
-        ).first()
+        logger.debug(f"Fetching story slide for nightline status with ID: '{nightline_status.id}'")
+        story_slide = cls.query.filter_by(nightline_status_id=nightline_status.id).first()
         if story_slide:
-            logger.debug(
-                f"Found story slide for status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}'"
-            )
+            logger.debug(f"Found story slide for status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}'")
         else:
             logger.info(
                 f"Story Slide for nightline status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}' not found"
@@ -95,9 +77,7 @@ class StorySlide(db.Model):
         return story_slide
 
     @classmethod
-    def update_story_slide(
-        cls, file: FileStorage, nightline_status: "NightlineStatus"
-    ) -> Optional["StorySlide"]:
+    def update_story_slide(cls, file: FileStorage, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
         """Create a story slide object, referencing the file and filepath"""
         # Save the file and get the file path
         file_path = cls.__save_story_slide_file(file, nightline_status, overwrite=True)
@@ -106,9 +86,7 @@ class StorySlide(db.Model):
 
         # Create or update the StorySlide object and save it to the database
         try:
-            story_slide = StorySlide.get_story_slide_by_nightline_status(
-                nightline_status
-            )
+            story_slide = StorySlide.get_story_slide_by_nightline_status(nightline_status)
             if not story_slide:
                 story_slide = cls(
                     filename=os.path.basename(file_path),

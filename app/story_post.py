@@ -31,9 +31,7 @@ def login_user(cl: Client, username: str, password: str) -> bool:
             try:
                 cl.get_timeline_feed()
             except LoginRequired:
-                logger.info(
-                    "Session is invalid, need to login via username and password"
-                )
+                logger.info("Session is invalid, need to login via username and password")
 
                 old_session = cl.get_settings()
 
@@ -48,9 +46,7 @@ def login_user(cl: Client, username: str, password: str) -> bool:
 
     if not login_via_session:
         try:
-            logger.info(
-                "Attempting to login via username and password. username: %s" % USERNAME
-            )
+            logger.info("Attempting to login via username and password. username: %s" % username)
             if cl.login(username, password):
                 login_via_pw = True
                 cl.dump_settings("session.json")
@@ -93,7 +89,7 @@ def delete_story_by_id(media_id: str) -> bool:
     """
     # Initiate Instagram session
     cl = Client()
-    if not login_user(cl):
+    if not login_user(cl):  # TODO logic error! Needs uname and pw
         return False
 
     try:

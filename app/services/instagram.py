@@ -35,9 +35,7 @@ def login_user(cl: Client) -> bool:
             try:
                 cl.get_timeline_feed()
             except LoginRequired:
-                logger.info(
-                    "Session is invalid, need to login via username and password"
-                )
+                logger.info("Session is invalid, need to login via username and password")
 
                 old_session = cl.get_settings()
 
@@ -52,9 +50,7 @@ def login_user(cl: Client) -> bool:
 
     if not login_via_session:
         try:
-            logger.info(
-                "Attempting to login via username and password. username: %s" % USERNAME
-            )
+            logger.info("Attempting to login via username and password. username: %s" % USERNAME)
             if cl.login(USERNAME, PASSWORD):
                 login_via_pw = True
                 cl.dump_settings("session.json")

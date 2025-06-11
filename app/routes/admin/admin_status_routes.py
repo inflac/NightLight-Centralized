@@ -10,9 +10,7 @@ from app.routes.api_models import (
 )
 from app.validation import validate_request_body, validate_status_value
 
-admin_status_ns = Namespace(
-    "admin status", description="Admin routes for statuses - API key required"
-)
+admin_status_ns = Namespace("admin status", description="Admin routes for statuses - API key required")
 
 # Define the request and response model for the status
 ad_st_error_model = admin_status_ns.model("Error", error_model)

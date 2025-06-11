@@ -9,16 +9,12 @@ from app.routes.api_models import (
 )
 from app.routes.decorators import sanitize_name
 
-admin_nightline_ns = Namespace(
-    "admin nightline", description="Admin routes for nightlines - API key required"
-)
+admin_nightline_ns = Namespace("admin nightline", description="Admin routes for nightlines - API key required")
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 ad_nl_success_model = admin_nightline_ns.model("Success", success_model)
 ad_nl_api_key_model = admin_nightline_ns.model("API-Key", api_key_model)
-ad_nl_admin_nightline_model = admin_nightline_ns.model(
-    "Admin Nightline", admin_nightline_model
-)
+ad_nl_admin_nightline_model = admin_nightline_ns.model("Admin Nightline", admin_nightline_model)
 
 
 @admin_nightline_ns.route("/<string:name>")

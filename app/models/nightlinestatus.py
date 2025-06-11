@@ -14,15 +14,11 @@ class NightlineStatus(db.Model):
     status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"), nullable=False)
     status = db.relationship("Status", backref="nightline_statuses")
     instagram_story = db.Column(db.Boolean, nullable=False, default=False)
-    instagram_story_slide = db.relationship(
-        StorySlide, back_populates="nightline_status", uselist=False
-    )
+    instagram_story_slide = db.relationship(StorySlide, back_populates="nightline_status", uselist=False)
 
     @classmethod
     def get_nightline_status(nightline_id: int, status_id: int) -> "NightlineStatus":
-        nightline_status = NightlineStatus.query.filter_by(
-            nightline_id=nightline_id, status_id=status_id
-        ).first()
+        nightline_status = NightlineStatus.query.filter_by(nightline_id=nightline_id, status_id=status_id).first()
         return nightline_status
 
     @classmethod
@@ -118,9 +114,7 @@ class NightlineStatus(db.Model):
                 )
                 return True
             else:
-                logger.warning(
-                    f"No NightlineStatus entries found for status: '{status.name}'"
-                )
+                logger.warning(f"No NightlineStatus entries found for status: '{status.name}'")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -134,16 +128,12 @@ class NightlineStatus(db.Model):
     @classmethod
     def delete_statuses_for_nightline(cls, nightline: "Nightline") -> bool:
         """Delete all statuses for a specific nightline"""
-        logger.debug(
-            f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'"
-        )
+        logger.debug(f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'")
 
         try:
             # Delete all NightlineStatus entries that reference the given
             # nightline_id
-            rows_deleted = NightlineStatus.query.filter_by(
-                nightline_id=nightline.id
-            ).delete()
+            rows_deleted = NightlineStatus.query.filter_by(nightline_id=nightline.id).delete()
 
             if rows_deleted > 0:
                 db.session.commit()
@@ -170,9 +160,7 @@ class NightlineStatus(db.Model):
             return False
 
     @classmethod
-    def update_instagram_story(
-        cls, nightline: "Nightline", status: "Status", instagram_story: bool
-    ) -> bool:
+    def update_instagram_story(cls, nightline: "Nightline", status: "Status", instagram_story: bool) -> bool:
         """Update the instagram_story value for a specific nightline and status."""
         logger.debug(
             f"Updating instagram_story for nightline: '{nightline.name}' and status: '{
@@ -181,9 +169,7 @@ class NightlineStatus(db.Model):
         )
 
         try:
-            nightline_status = NightlineStatus.query.filter_by(
-                nightline_id=nightline.id, status_id=status.id
-            ).first()
+            nightline_status = NightlineStatus.query.filter_by(nightline_id=nightline.id, status_id=status.id).first()
 
             if nightline_status:
                 nightline_status.instagram_story = instagram_story

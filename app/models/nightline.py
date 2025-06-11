@@ -18,9 +18,7 @@ class Nightline(db.Model):
     name = db.Column(db.String(50), nullable=False, unique=True)
     status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"), nullable=False)
     status = db.relationship("Status", backref="nightlines")
-    nightline_statuses = db.relationship(
-        "NightlineStatus", back_populates="nightline", cascade="all, delete-orphan"
-    )
+    nightline_statuses = db.relationship("NightlineStatus", back_populates="nightline", cascade="all, delete-orphan")
     now = db.Column(db.Boolean, nullable=False, default=False)
     instagram_media_id = db.Column(db.String(50), nullable=True, default="")
     instagram_account = db.relationship(
@@ -49,9 +47,7 @@ class Nightline(db.Model):
 
         default_status = Status.get_status("default")
         if not default_status:
-            logger.error(
-                f"Nightline was not added because the default status is missing"
-            )
+            logger.error(f"Nightline was not added because the default status is missing")
             return None
 
         try:
@@ -60,9 +56,7 @@ class Nightline(db.Model):
             db.session.commit()
             logger.debug(f"Created nightline: '{name}'")
 
-            new_api_key = ApiKey(
-                key=ApiKey.generate_api_key(), nightline_id=new_nightline.id
-            )
+            new_api_key = ApiKey(key=ApiKey.generate_api_key(), nightline_id=new_nightline.id)
             db.session.add(new_api_key)
             db.session.commit()
             logger.debug(f"Created API-Key for nightline: '{name}'")
@@ -89,9 +83,7 @@ class Nightline(db.Model):
 
         api_key = ApiKey.get_api_key(nightline.id)
         if not api_key:
-            logger.info(
-                f"Api key for nightline '{name}' not found, can't remove the nightline"
-            )
+            logger.info(f"Api key for nightline '{name}' not found, can't remove the nightline")
             return None
 
         NightlineStatus.delete_statuses_for_nightline(nightline)
@@ -130,13 +122,9 @@ class Nightline(db.Model):
 
             if language_filter:
                 if language_filter == "de":
-                    query = query.filter(
-                        or_(Status.name == "german", Status.name == "german-english")
-                    )
+                    query = query.filter(or_(Status.name == "german", Status.name == "german-english"))
                 elif language_filter == "en":
-                    query = query.filter(
-                        or_(Status.name == "english", Status.name == "german-english")
-                    )
+                    query = query.filter(or_(Status.name == "english", Status.name == "german-english"))
 
             if isinstance(now_filter, bool):
                 query = query.filter(Nightline.now == now_filter)
@@ -216,16 +204,10 @@ class Nightline(db.Model):
             db.session.add(insta_account)
             db.session.commit()
 
-            logger.info(
-                f"Instagram account added for nightline {self.name} with username {
-                    username
-                }"
-            )
+            logger.info(f"Instagram account added for nightline {self.name} with username {username}")
             return True
         else:
-            logger.warning(
-                f"Instagram account already exists for nightline {self.name}"
-            )
+            logger.warning(f"Instagram account already exists for nightline {self.name}")
             return False
 
     def update_instagram_username(self, new_username: str) -> bool:
@@ -234,11 +216,7 @@ class Nightline(db.Model):
             self.instagram_account.set_username(new_username)
             db.session.commit()
 
-            logger.info(
-                f"Instagram username updated to {new_username} for Nightline {
-                    self.name
-                }."
-            )
+            logger.info(f"Instagram username updated to {new_username} for Nightline {self.name}.")
             return True
         else:
             logger.warning(f"No Instagram account found for Nightline {self.name}.")
@@ -275,13 +253,8 @@ class Nightline(db.Model):
         story_slide_path = nightline_status.path
 
         # Check if posting an instagram story is configured
-        if (
-            not nightline_status.instagram_story
-            or not nightline_status.instagram_story_slide
-        ):
-            logger.info(
-                f"Posting an instagram story is not configured for status '{status.name}' of nightline '{self.name}'"
-            )
+        if not nightline_status.instagram_story or not nightline_status.instagram_story_slide:
+            logger.info(f"Posting an instagram story is not configured for status '{status.name}' of nightline '{self.name}'")
             return False
 
         # Post the story

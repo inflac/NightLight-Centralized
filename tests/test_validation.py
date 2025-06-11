@@ -43,10 +43,7 @@ def test_validate_request_body_no_keys():
 @pytest.mark.parametrize("language", ["de", None])
 @pytest.mark.parametrize("now", ["true", None])
 def test_validate_filters_valid(status, language, now):
-    assert (
-        validate_filters(status_filter=status, language_filter=language, now_filter=now)
-        is None
-    )
+    assert validate_filters(status_filter=status, language_filter=language, now_filter=now) is None
 
 
 @pytest.mark.parametrize("status", ["invalid!", "a" * 16, 123])
