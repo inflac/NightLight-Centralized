@@ -44,6 +44,9 @@ jobs:
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -r requirements.txt
 
+      - name: Rename .env.example to .env
+        run: mv .env.example .env
+
       - name: Lint with pylint
         run: .venv/bin/pylint --errors-only $(git ls-files '*.py') | tee pylint.log
 
