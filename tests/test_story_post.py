@@ -1,5 +1,6 @@
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
@@ -9,6 +10,7 @@ from app.story_post import login_user
 @pytest.fixture
 def mock_client():
     return MagicMock()
+
 
 @patch("app.story_post.logger")
 def test_login_with_valid_session(mock_logger, mock_client):
@@ -22,6 +24,7 @@ def test_login_with_valid_session(mock_logger, mock_client):
     mock_client.set_settings.assert_called()
     mock_client.login.assert_called()
     mock_client.get_timeline_feed.assert_called()
+
 
 @patch("app.story_post.logger")
 def test_login_with_invalid_session_then_successful_password_login(mock_logger, mock_client):

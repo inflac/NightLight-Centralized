@@ -82,13 +82,13 @@ def post_story(image_path: os.PathLike, username: str, password: str) -> Optiona
     return
 
 
-def delete_story_by_id(media_id: str) -> bool:
+def delete_story_by_id(media_id: str, username: str, password: str) -> bool:
     """
     Deletes an Instagram story given its media ID.
     """
     # Initiate Instagram session
     cl = Client()
-    if not login_user(cl):  # TODO logic error! Needs uname and pw
+    if not login_user(cl, username, password):
         return False
 
     try:

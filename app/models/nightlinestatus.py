@@ -17,7 +17,7 @@ class NightlineStatus(db.Model):
     instagram_story_slide = db.relationship(StorySlide, back_populates="nightline_status", uselist=False)
 
     @classmethod
-    def get_nightline_status(nightline_id: int, status_id: int) -> "NightlineStatus":
+    def get_nightline_status(cls, nightline_id: int, status_id: int) -> "NightlineStatus":
         nightline_status = NightlineStatus.query.filter_by(nightline_id=nightline_id, status_id=status_id).first()
         return nightline_status
 
@@ -26,11 +26,7 @@ class NightlineStatus(db.Model):
         from .nightline import Nightline
 
         """Create NightlineStatus entries for all Nightlines for a given Status"""
-        logger.debug(
-            f"Creating NightlineStatus entries for all nightlines with status '{
-                status.name
-            }'"
-        )
+        logger.debug(f"Creating NightlineStatus entries for all nightlines with status '{status.name}'")
 
         nightlines = Nightline.list_nightlines()
         try:
@@ -43,19 +39,11 @@ class NightlineStatus(db.Model):
                 db.session.add(new_nightline_status)
             db.session.commit()
 
-            logger.info(
-                f"NightlineStatus entries created successfully for status '{
-                    status.name
-                }'"
-            )
+            logger.info(f"NightlineStatus entries created successfully for status '{status.name}'")
             return True
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(
-                f"Error creating NightlineStatus entries for status '{status.name}': {
-                    str(e)
-                }"
-            )
+            logger.error(f"Error creating NightlineStatus entries for status '{status.name}': {str(e)}")
             return False
 
     @classmethod
@@ -63,11 +51,7 @@ class NightlineStatus(db.Model):
         from .status import Status
 
         """Create NightlineStatus entries for all Statuses for a nightline"""
-        logger.debug(
-            f"Creating NightlineStatus entries for all statuses for nightline '{
-                nightline.name
-            }'"
-        )
+        logger.debug(f"Creating NightlineStatus entries for all statuses for nightline '{nightline.name}'")
 
         statuses = Status.list_statuses()
         try:
@@ -80,19 +64,11 @@ class NightlineStatus(db.Model):
                 db.session.add(new_nightline_status)
             db.session.commit()
 
-            logger.info(
-                f"NightlineStatus entries created successfully for nightline '{
-                    nightline.name
-                }'"
-            )
+            logger.info(f"NightlineStatus entries created successfully for nightline '{nightline.name}'")
             return True
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(
-                f"Error creating NightlineStatus entries for nightline '{
-                    nightline.name
-                }': {str(e)}"
-            )
+            logger.error(f"Error creating NightlineStatus entries for nightline '{nightline.name}': {str(e)}")
             return False
 
     @classmethod
@@ -107,22 +83,14 @@ class NightlineStatus(db.Model):
 
             if rows_deleted > 0:
                 db.session.commit()
-                logger.info(
-                    f"Successfully deleted '{
-                        rows_deleted
-                    }' NightlineStatus entries for status: '{status.name}'"
-                )
+                logger.info(f"Successfully deleted '{rows_deleted}' NightlineStatus entries for status: '{status.name}'")
                 return True
             else:
                 logger.warning(f"No NightlineStatus entries found for status: '{status.name}'")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(
-                f"Error deleting NightlineStatus entries for status: '{status.name}': {
-                    str(e)
-                }"
-            )
+            logger.error(f"Error deleting NightlineStatus entries for status: '{status.name}': {str(e)}")
             return False
 
     @classmethod
@@ -137,36 +105,20 @@ class NightlineStatus(db.Model):
 
             if rows_deleted > 0:
                 db.session.commit()
-                logger.info(
-                    f"Successfully deleted '{
-                        rows_deleted
-                    }' NightlineStatus entries for nightline: '{nightline.name}'"
-                )
+                logger.info(f"Successfully deleted '{rows_deleted}' NightlineStatus entries for nightline: '{nightline.name}'")
                 return True
             else:
-                logger.warning(
-                    f"No NightlineStatus entries found for nightline: '{
-                        nightline.name
-                    }'"
-                )
+                logger.warning(f"No NightlineStatus entries found for nightline: '{nightline.name}'")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(
-                f"Error deleting NightlineStatus entries for nightline: '{
-                    nightline.name
-                }': {str(e)}"
-            )
+            logger.error(f"Error deleting NightlineStatus entries for nightline: '{nightline.name}': {str(e)}")
             return False
 
     @classmethod
     def update_instagram_story(cls, nightline: "Nightline", status: "Status", instagram_story: bool) -> bool:
         """Update the instagram_story value for a specific nightline and status."""
-        logger.debug(
-            f"Updating instagram_story for nightline: '{nightline.name}' and status: '{
-                status.name
-            }' to '{instagram_story}'"
-        )
+        logger.debug(f"Updating instagram_story for nightline: '{nightline.name}' and status: '{status.name}' to '{instagram_story}'")
 
         try:
             nightline_status = NightlineStatus.query.filter_by(nightline_id=nightline.id, status_id=status.id).first()
@@ -175,23 +127,12 @@ class NightlineStatus(db.Model):
                 nightline_status.instagram_story = instagram_story
                 db.session.commit()
                 logger.info(
-                    f"Updated instagram_story for nightline: '{
-                        nightline.name
-                    }', status: '{status.name}' to '{instagram_story}'"
-                )
+                    f"Updated instagram_story for nightline: '{nightline.name}', status: '{status.name}' to '{instagram_story}'")
                 return True
             else:
-                logger.warning(
-                    f"No NightlineStatus entry found for nightline: '{
-                        nightline.name
-                    }' and status: {status.name}"
-                )
+                logger.warning(f"No NightlineStatus entry found for nightline: '{nightline.name}' and status: {status.name}")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(
-                f"Error updating instagram_story for nightline: '{
-                    nightline.name
-                }', status: '{status.name}': {str(e)}"
-            )
+            logger.error(f"Error updating instagram_story for nightline: '{nightline.name}', status: '{status.name}': {str(e)}")
             return False

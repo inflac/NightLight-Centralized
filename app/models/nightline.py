@@ -270,7 +270,10 @@ class Nightline(db.Model):
             logger.debug("No story to delete because no media id is set")
             return True
 
-        if delete_story_by_id(self.instagram_media_id):
+        username = self.instagram_account.username
+        password = self.instagram_account.get_password()
+
+        if delete_story_by_id(self.instagram_media_id, username, password):
             self.set_instagram_media_id(None)
             return True
         return False
