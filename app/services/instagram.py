@@ -1,5 +1,7 @@
 import logging
 import os
+from pathlib import Path
+from typing import Optional, cast
 
 from dotenv import load_dotenv
 from instagrapi import Client
@@ -62,29 +64,29 @@ def login_user(cl: Client) -> bool:
     return True
 
 
-def post_story(image_path: os.PathLike):
+def post_story(image_path: Path) -> Optional[str]:
     """
     Uploads a story to Instagram.
     """
     # Initiate Instagram session
     cl = Client()
     if not login_user(cl):
-        return
+        return None
 
     # Check image to upload
     if not os.path.exists(image_path):
         logger.error(f"Image not found: {image_path}")
-        return
+        return None
 
     # Upload the image
     try:
         resp = cl.photo_upload_to_story(image_path)
-        media_id = resp.pk
+        media_id = cast(str, resp.pk)
         logger.info(f"Story {image_path} with ID: {media_id}, posted successfully")
         return media_id
     except Exception as e:
         logger.error(f"Failed to post story: {e}")
-    return
+    return None
 
 
 def delete_story_by_id(media_id: str) -> bool:

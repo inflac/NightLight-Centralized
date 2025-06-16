@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional, cast
 
 from app.logger import logger
 
@@ -6,7 +6,7 @@ from ..db import db
 from .nightlinestatus import NightlineStatus
 
 
-class Status(db.Model):
+class Status(db.Model):  # type: ignore
     __tablename__ = "statuses"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(15), unique=True, nullable=False)
@@ -20,7 +20,7 @@ class Status(db.Model):
         """Query and return a status by name"""
         logger.debug(f"Fetching status by name: {name}")
 
-        status = cls.query.filter_by(name=name).first()
+        status = cast(Optional["Status"], cls.query.filter_by(name=name).first())
         if status:
             logger.debug(f"Found status: {name}")
         else:
@@ -88,12 +88,12 @@ class Status(db.Model):
             return None
 
     @classmethod
-    def list_statuses(cls) -> list[dict]:
+    def list_statuses(cls) -> list["Status"]:
         """List all available statuses"""
         logger.debug("Listing all statuses")
 
         try:
-            statuses = Status.query.all()
+            statuses = cast(List["Status"], Status.query.all())
 
             logger.info(f"Listed {len(statuses)} statuses")
             return statuses

@@ -10,7 +10,7 @@ from app.config import Config
 from app.db import db
 
 
-class InstagramAccount(db.Model):
+class InstagramAccount(db.Model):  # type: ignore
     __tablename__ = "instagram_accounts"
     id = db.Column(db.Integer, primary_key=True)
     nightline_id = db.Column(db.Integer, db.ForeignKey("nightlines.id"), unique=True, nullable=False)
@@ -25,7 +25,7 @@ class InstagramAccount(db.Model):
     salt = db.Column(db.String(255), nullable=False)
     session_data = db.Column(db.Text, nullable=True)
 
-    def derive_key(self):
+    def derive_key(self) -> Fernet:
         """Derives an encryption key using PBKDF2 with the stored salt."""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -37,19 +37,19 @@ class InstagramAccount(db.Model):
         key = base64.urlsafe_b64encode(kdf.derive(Config.ENCRYPTION_PASSWORD.encode()))
         return Fernet(key)
 
-    def set_username(self, username: str):
+    def set_username(self, username: str) -> None:
         """Set the username of an account."""
         self.username = username
         db.session.commit()
 
-    def set_password(self, password: str):
+    def set_password(self, password: str) -> None:
         """Securely store the password of an account."""
         self.salt = base64.urlsafe_b64encode(os.urandom(16)).decode()  # Generate a 16-byte salt
         cipher = self.derive_key()
         self.encrypted_password = cipher.encrypt(password.encode()).decode()
         db.session.commit()
 
-    def get_password(self):
+    def get_password(self) -> str:
         """Decrypts and returns the stored password."""
         cipher = self.derive_key()
         return cipher.decrypt(self.encrypted_password.encode()).decode()

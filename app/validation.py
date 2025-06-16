@@ -1,10 +1,15 @@
+from typing import Any, Optional
+
 from flask_restx import abort
 from PIL import Image
 from werkzeug.datastructures.file_storage import FileStorage
 
 
-def validate_request_body(data: dict, keys: list) -> bool:
+def validate_request_body(data: Any, keys: list[str]) -> bool:
     """Check if keys exist in request body"""
+    if not isinstance(data, dict):
+        abort(400, message="Request body must be a valid JSON object")
+
     if not keys:
         return False
 
@@ -24,7 +29,7 @@ def validate_request_body(data: dict, keys: list) -> bool:
     return True
 
 
-def validate_filters(status_filter: str = None, language_filter: str = None, now_filter: str = None) -> None:
+def validate_filters(status_filter: Optional[str] = None, language_filter: Optional[str] = None, now_filter: Optional[str] = None) -> None:
     """Validate the value of filter parameters"""
     if status_filter:  # Validate status filter
         if (not isinstance(status_filter, str)) or (len(status_filter) > 15) or (not status_filter.isalnum()):

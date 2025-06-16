@@ -1,3 +1,5 @@
+from typing import Any, Dict, Tuple, cast
+
 from flask import request
 from flask_restx import Namespace, Resource, abort, reqparse
 from werkzeug.datastructures import FileStorage
@@ -35,29 +37,31 @@ upload_parser.add_argument("status", location="form", type=str, required=True, h
 
 
 @nightline_ns.route("/<string:name>/status")
-class NightlineStatusResource(Resource):
+class NightlineStatusResource(Resource):  # type: ignore
     @sanitize_name
-    @nightline_ns.expect(nl_set_status_model)
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    @nightline_ns.response(500, "Status Error", nl_error_model)
-    def patch(self, name):
+    @nightline_ns.expect(nl_set_status_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(500, "Status Error", nl_error_model)  # type: ignore[misc]
+    def patch(self, name: str) -> Tuple[Dict[str, str], int]:
         """Set the status of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
         validate_request_body(data, ["status"])
 
-        status_value = data["status"]
+        status_value = data["status"]  # type: ignore[index]
         validate_status_value(status_value)  # Validate status name format
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         status = nightline.set_status(status_value.strip())
         if not status:
             abort(500, f"Updating the status failed")
+        status = cast(Status, status)
 
         # If configured post an instagram story
         if not nightline.post_instagram_story(status=status):
@@ -67,15 +71,16 @@ class NightlineStatusResource(Resource):
         return response, 200
 
     @sanitize_name
-    @nightline_ns.response(200, "Success", nl_set_status_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    @nightline_ns.response(500, "Status Error", nl_error_model)
-    def delete(self, name):
+    @nightline_ns.response(200, "Success", nl_set_status_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(500, "Status Error", nl_error_model)  # type: ignore[misc]
+    def delete(self, name: str) -> Tuple[Dict[str, str], int]:
         """Reset the status of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         status = nightline.reset_status()
         if not status:
@@ -93,32 +98,36 @@ class NightlineStatusResource(Resource):
 
 
 @nightline_ns.route("/<string:name>/status/config")
-class NightlineStatusConfigResource(Resource):
+class NightlineStatusConfigResource(Resource):  # type: ignore
     @sanitize_name
-    @nightline_ns.expect(nl_set_status_config_model)
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    @nightline_ns.response(500, "Status Error", nl_error_model)
-    def patch(self, name):
+    @nightline_ns.expect(nl_set_status_config_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(500, "Status Error", nl_error_model)  # type: ignore[misc]
+    def patch(self, name: str) -> Tuple[Dict[str, str], int]:
         """Configure a status of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
-        validate_request_body(data, ["status", "instagram_story"])
+        validate_request_body(cast(dict[str, Any], data), ["status", "instagram_story"])
 
-        instagram_story = data.get("instagram_story")
+        instagram_story = data["instagram_story"]  # type: ignore[index]
         if not isinstance(instagram_story, bool):
             abort(400, "'instagram_story' must be a boolean")
 
         # Validate status
-        status_value = data["status"]
+        status_value = data["status"]  # type: ignore[index]
         validate_status_value(status_value)  # Validate status name format
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         status = Status.get_status(status_value)
+        if not status:
+            abort(400, message=f"Status '{status_value}' not found")
+        status = cast(Status, status)
 
         # Validate a story slide is set if instagram_story == 'True'
         if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.id):
@@ -132,25 +141,26 @@ class NightlineStatusConfigResource(Resource):
 
 
 @nightline_ns.route("/<string:name>/now")
-class NightlineNowResource(Resource):
+class NightlineNowResource(Resource):  # type: ignore
     @sanitize_name
-    @nightline_ns.expect(nl_set_now_model)
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    def patch(self, name):
+    @nightline_ns.expect(nl_set_now_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def patch(self, name: str) -> Tuple[Dict[str, str], int]:
         """Update the 'now' boolean of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
-        validate_request_body(data, ["now"])
+        validate_request_body(cast(dict[str, Any], data), ["now"])
 
-        now_value = data.get("now")
+        now_value = data["now"]  # type: ignore[index]
         if not isinstance(now_value, bool):
             abort(400, "'now' must be a boolean")
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         # Update and persist the change
         nightline.set_now(now_value)
@@ -160,27 +170,28 @@ class NightlineNowResource(Resource):
 
 
 @nightline_ns.route("/<string:name>/instagram")
-class NightlineInstagramResource(Resource):
+class NightlineInstagramResource(Resource):  # type: ignore
     @sanitize_name
     # Expect the data for creating Instagram account
-    @nightline_ns.expect(nl_instagram_create_model)
-    @nightline_ns.response(201, "Created", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    def post(self, name):
+    @nightline_ns.expect(nl_instagram_create_model)  # type: ignore[misc]
+    @nightline_ns.response(201, "Created", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def post(self, name: str) -> Tuple[Dict[str, str], int]:
         """Add an Instagram account for the given nightline"""
         # Parse and validate the request body
         data = request.get_json(force=True, silent=True)
         validate_request_body(data, ["username", "password"])
 
-        username = data["username"]
-        password = data["password"]
+        username = data["username"]  # type: ignore[index]
+        password = data["password"]  # type: ignore[index]
         validate_instagram_credentials(username, password)
 
         # Fetch the nightline entry
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         # Add the Instagram account
         if not nightline.add_instagram_account(username, password):
@@ -190,25 +201,26 @@ class NightlineInstagramResource(Resource):
         return response, 201
 
     @sanitize_name
-    @nightline_ns.expect(nl_instagram_create_model)
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    def patch(self, name):
+    @nightline_ns.expect(nl_instagram_create_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def patch(self, name: str) -> Tuple[Dict[str, str], int]:
         """Update the Instagram credentials for the given nightline"""
         # Parse and validate the request body
         data = request.get_json(force=True, silent=True)
-        validate_request_body(data, ["username", "password"])
+        validate_request_body(cast(dict[str, Any], data), ["username", "password"])
 
         # Validate the submitted instagram credentials format
-        username = data["username"]
-        password = data["password"]
+        username = data["username"]  # type: ignore[index]
+        password = data["password"]  # type: ignore[index]
         validate_instagram_credentials(username, password)
 
         # Fetch the nightline entry
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         # Fetch the Instagram account
         instagram_account = nightline.instagram_account
@@ -222,15 +234,16 @@ class NightlineInstagramResource(Resource):
         return response, 200
 
     @sanitize_name
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(404, "Instagram Account Not Found", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    def delete(self, name):
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Instagram Account Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def delete(self, name: str) -> Tuple[Dict[str, str], int]:
         """Delete the Instagram account for the given nightline"""
         # Fetch the nightline entry
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         # Fetch the Instagram account
         instagram_account = nightline.instagram_account
@@ -245,15 +258,15 @@ class NightlineInstagramResource(Resource):
 
 
 @nightline_ns.route("/<string:name>/story")
-class NightlineStoryResource(Resource):
+class NightlineStoryResource(Resource):  # type: ignore
     @sanitize_name
     # Expect the story slide data
-    @nightline_ns.expect(upload_parser, validate=True)
-    @nightline_ns.response(201, "Created", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    @nightline_ns.response(500, "Story Error", nl_error_model)
-    def post(self, name):
+    @nightline_ns.expect(upload_parser, validate=True)  # type: ignore[misc]
+    @nightline_ns.response(201, "Created", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(500, "Story Error", nl_error_model)  # type: ignore[misc]
+    def post(self, name: str) -> Tuple[Dict[str, str], int]:
         """Add a story slide for the given nightline and status"""
         # Parse the request body
         args = upload_parser.parse_args()
@@ -268,11 +281,12 @@ class NightlineStoryResource(Resource):
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
-        nightline_status = next(
-            (nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value),
-            None,
-        )
+        nightline_status = next((nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value), None)  # type: ignore[attr-defined]
+        if not nightline_status:
+            abort(404, f"Status '{status_value}' not found")
+        nightline_status = cast(NightlineStatus, nightline_status)
 
         if not StorySlide.update_story_slide(image_file, nightline_status):
             abort(500, f"Uploading a story slide for status {status_value} failed")
@@ -281,11 +295,11 @@ class NightlineStoryResource(Resource):
         return response, 201
 
     @sanitize_name
-    @nightline_ns.response(200, "Success", nl_success_model)
-    @nightline_ns.response(400, "Bad Request", nl_error_model)
-    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)
-    @nightline_ns.response(500, "Story Error", nl_error_model)
-    def delete(self, name):
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(500, "Story Error", nl_error_model)  # type: ignore[misc]
+    def delete(self, name: str) -> Tuple[Dict[str, str], int]:
         """Remove a story slide for the given nightline and status"""
         # Parse the request body
         args = upload_parser.parse_args()
@@ -297,11 +311,12 @@ class NightlineStoryResource(Resource):
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
-        nightline_status = next(
-            (nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value),
-            None,
-        )
+        nightline_status = next((nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value), None)  # type: ignore[attr-defined]
+        if not nightline_status:
+            abort(404, f"Status '{status_value}' not found")
+        nightline_status = cast(NightlineStatus, nightline_status)
 
         if not StorySlide.remove_story_slide(nightline_status):
             abort(500, f"Deleting a story slide for status {status_value} failed")

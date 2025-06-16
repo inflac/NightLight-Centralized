@@ -1,4 +1,6 @@
-from flask import request
+from typing import Any, Dict, List, Tuple, Union
+
+from flask import Response, request
 from flask_restx import Namespace, Resource, abort
 
 from app.models import Status
@@ -20,11 +22,11 @@ ad_st_set_status_model = admin_status_ns.model("Set Status", set_status_model)
 
 
 @admin_status_ns.route("/")
-class StatusResource(Resource):
-    @admin_status_ns.expect(ad_st_status_model)
-    @admin_status_ns.response(200, "Success", ad_st_success_model)
-    @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
-    def post(self):
+class StatusResource(Resource):  # type: ignore
+    @admin_status_ns.expect(ad_st_status_model)  # type: ignore[misc]
+    @admin_status_ns.response(200, "Success", ad_st_success_model)  # type: ignore[misc]
+    @admin_status_ns.response(400, "Bad Request", ad_st_error_model)  # type: ignore[misc]
+    def post(self) -> Tuple[Dict[str, str], int]:
         """Add a new status"""
         # Dynamically get required fields from the model
         required_fields = [field_name for field_name, _ in ad_st_status_model.items()]
@@ -46,13 +48,13 @@ class StatusResource(Resource):
         return response, 200
 
     # Route to remove a status
-    @admin_status_ns.expect(ad_st_set_status_model)
-    @admin_status_ns.response(200, "Success", ad_st_success_model)
-    @admin_status_ns.response(400, "Bad Request", ad_st_error_model)
-    def delete(self):
+    @admin_status_ns.expect(ad_st_set_status_model)  # type: ignore[misc]
+    @admin_status_ns.response(200, "Success", ad_st_success_model)  # type: ignore[misc]
+    @admin_status_ns.response(400, "Bad Request", ad_st_error_model)  # type: ignore[misc]
+    def delete(self) -> Tuple[Dict[str, str], int]:
         """Remove a status"""
         data = request.get_json()
-        validate_request_body(data, "status")
+        validate_request_body(data, ["status"])
 
         status_value = data["status"]
         validate_status_value(status_value)
@@ -67,10 +69,10 @@ class StatusResource(Resource):
 
 # Route to list all statuses
 @admin_status_ns.route("/all")
-class StatusListResource(Resource):
-    @admin_status_ns.response(200, "Success", [ad_st_status_model])
-    @admin_status_ns.response(404, "Statuses Not Found", ad_st_error_model)
-    def get(self):
+class StatusListResource(Resource):  # type: ignore
+    @admin_status_ns.response(200, "Success", [ad_st_status_model])  # type: ignore[misc]
+    @admin_status_ns.response(404, "Statuses Not Found", ad_st_error_model)  # type: ignore[misc]
+    def get(self) -> Union[Tuple[List[Dict[str, Any]], int], Response]:
         """List all selectable statuses"""
         statuses = Status.list_statuses()
 

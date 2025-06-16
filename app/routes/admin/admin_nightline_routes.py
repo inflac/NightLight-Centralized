@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Dict, Tuple, cast
+
 from flask_restx import Namespace, Resource, abort
 
 from app.models import Nightline
@@ -9,6 +11,9 @@ from app.routes.api_models import (
 )
 from app.routes.decorators import sanitize_name
 
+if TYPE_CHECKING:
+    from app.models.apikey import ApiKey
+
 admin_nightline_ns = Namespace("admin nightline", description="Admin routes for nightlines - API key required")
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
@@ -18,16 +23,17 @@ ad_nl_admin_nightline_model = admin_nightline_ns.model("Admin Nightline", admin_
 
 
 @admin_nightline_ns.route("/<string:name>")
-class NightlineResource(Resource):
+class NightlineResource(Resource):  # type: ignore
     @sanitize_name
-    @admin_nightline_ns.response(200, "Success", ad_nl_admin_nightline_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
-    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
-    def get(self, name):
+    @admin_nightline_ns.response(200, "Success", ad_nl_admin_nightline_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)  # type: ignore[misc]
+    def get(self, name: str) -> tuple[dict[str, object], int]:
         """Retrieve details of a specific nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correc type
 
         response = {
             "nightline_id": nightline.id,
@@ -39,9 +45,9 @@ class NightlineResource(Resource):
         return response, 200
 
     @sanitize_name
-    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
-    def post(self, name):
+    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
+    def post(self, name: str) -> Tuple[Dict[str, str], int]:
         """Add a new nightline with the default status"""
         nightline = Nightline.add_nightline(name)
         if not nightline:
@@ -54,9 +60,9 @@ class NightlineResource(Resource):
         return response, 200
 
     @sanitize_name
-    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
-    def delete(self, name):
+    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
+    def delete(self, name: str) -> Tuple[Dict[str, str], int]:
         """Remove a nightline by name"""
         nightline = Nightline.remove_nightline(name)
         if not nightline:
@@ -67,34 +73,37 @@ class NightlineResource(Resource):
 
 
 @admin_nightline_ns.route("/key/<string:name>")
-class ApiKeyResource(Resource):
+class ApiKeyResource(Resource):  # type: ignore
     @sanitize_name  # Can return 400 error
-    @admin_nightline_ns.response(200, "Success", ad_nl_api_key_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
-    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
-    @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
-    def get(self, name):
+    @admin_nightline_ns.response(200, "Success", ad_nl_api_key_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)  # type: ignore[misc]
+    def get(self, name: str) -> Tuple[Dict[str, str], int]:
         """Get the API-Key of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)
 
         api_key = nightline.get_api_key()
         if not api_key:
             abort(500, "No api key found for nightline: '{name}'")
+        api_key = cast("ApiKey", api_key)
 
         return {"API-Key": f"{api_key.key}"}, 200
 
     @sanitize_name  # Can return 400 error
-    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)
-    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)
-    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)
-    @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)
-    def patch(self, name):
+    @admin_nightline_ns.response(200, "Success", ad_nl_success_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(404, "Nightline Not Found", ad_nl_error_model)  # type: ignore[misc]
+    @admin_nightline_ns.response(500, "API-Key Error", ad_nl_error_model)  # type: ignore[misc]
+    def patch(self, name: str) -> Tuple[Dict[str, str], int]:
         """Renew the API-Key of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         if not nightline.renew_api_key():
             abort(500, "No api key found for nightline: '{name}'")

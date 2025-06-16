@@ -1,5 +1,6 @@
 import logging
 import logging.config
+from typing import Any, Dict
 
 logger = logging.getLogger("nightlight")
 
@@ -14,7 +15,7 @@ file_json = """{
 }"""
 
 # Logging configuration
-LOGGING_CONFIG = {
+LOGGING_CONFIG: Dict[str, Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -66,7 +67,7 @@ def create_logger(log_to_file: bool, file_log_format: str, log_level: str) -> lo
     global logger
 
     if log_level not in VALID_LOG_LEVELS:
-        logger.CRITICAL(f"The configured log level {log_level} is not valid! The logger will use 'info' now")
+        logger.critical(f"The configured log level {log_level} is not valid! The logger will use 'info' now")
         log_level = "INFO"
 
     if log_to_file:

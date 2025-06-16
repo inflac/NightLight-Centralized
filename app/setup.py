@@ -4,7 +4,7 @@ from .db import db
 from .models import Status
 
 
-def preinitialize_statuses():
+def preinitialize_statuses() -> bool:
     from .logger import logger
 
     """Pre-initialize default statuses if they don't exist"""
@@ -69,7 +69,9 @@ def preinitialize_statuses():
 
         db.session.commit()
         logger.info("Initilized statuses")
+        return True
 
     except SQLAlchemyError as db_err:
         db.session.rollback()
         logger.error(f"Error while initializing statuses: {db_err}")
+        return False

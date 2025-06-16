@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Optional, cast
+
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.logger import logger
@@ -5,8 +7,12 @@ from app.models.storyslide import StorySlide
 
 from ..db import db
 
+if TYPE_CHECKING:
+    from app.models.nightline import Nightline
+    from app.models.status import Status
 
-class NightlineStatus(db.Model):
+
+class NightlineStatus(db.Model):  # type: ignore
     __tablename__ = "nightline_statuses"
     id = db.Column(db.Integer, primary_key=True)
     nightline_id = db.Column(db.Integer, db.ForeignKey("nightlines.id"), nullable=False)
@@ -17,8 +23,8 @@ class NightlineStatus(db.Model):
     instagram_story_slide = db.relationship(StorySlide, back_populates="nightline_status", uselist=False)
 
     @classmethod
-    def get_nightline_status(cls, nightline_id: int, status_id: int) -> "NightlineStatus":
-        nightline_status = NightlineStatus.query.filter_by(nightline_id=nightline_id, status_id=status_id).first()
+    def get_nightline_status(cls, nightline_id: int, status_id: int) -> Optional["NightlineStatus"]:
+        nightline_status = cast(Optional["NightlineStatus"], NightlineStatus.query.filter_by(nightline_id=nightline_id, status_id=status_id).first())
         return nightline_status
 
     @classmethod
@@ -126,8 +132,7 @@ class NightlineStatus(db.Model):
             if nightline_status:
                 nightline_status.instagram_story = instagram_story
                 db.session.commit()
-                logger.info(
-                    f"Updated instagram_story for nightline: '{nightline.name}', status: '{status.name}' to '{instagram_story}'")
+                logger.info(f"Updated instagram_story for nightline: '{nightline.name}', status: '{status.name}' to '{instagram_story}'")
                 return True
             else:
                 logger.warning(f"No NightlineStatus entry found for nightline: '{nightline.name}' and status: {status.name}")

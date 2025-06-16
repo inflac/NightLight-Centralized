@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional, cast
 
 from sqlalchemy import or_
 
@@ -12,7 +12,7 @@ from .nightlinestatus import NightlineStatus
 from .status import Status
 
 
-class Nightline(db.Model):
+class Nightline(db.Model):  # type: ignore
     __tablename__ = "nightlines"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
@@ -33,7 +33,7 @@ class Nightline(db.Model):
         """Query and return a nightline by name"""
         logger.debug(f"Fetching nightline by name: '{name}'")
 
-        nightline = cls.query.filter_by(name=name).first()
+        nightline = cast(Optional["Nightline"], cls.query.filter_by(name=name).first())
         if nightline:
             logger.debug(f"Found nightline: '{name}'")
         else:
@@ -106,9 +106,9 @@ class Nightline(db.Model):
     @classmethod
     def list_nightlines(
         cls,
-        status_filter: str = None,
-        language_filter: str = None,
-        now_filter: bool = None,
+        status_filter: Optional[str] = None,
+        language_filter: Optional[str] = None,
+        now_filter: Optional[bool] = None,
     ) -> list["Nightline"]:
         """List all nightlines with optional filters"""
         logger.debug("Listing all nightlines with filters")
@@ -130,14 +130,14 @@ class Nightline(db.Model):
                 query = query.filter(Nightline.now == now_filter)
 
             # Fetch nightlines that match filter criteria
-            nightlines = query.all()
+            nightlines = cast(list[Nightline], query.all())
 
             logger.info(f"Listed {len(nightlines)} nightlines")
             return nightlines
 
         except Exception as e:
             logger.error(f"Error while fetching the nightlines: {str(e)}")
-            raise RuntimeError(f"Error while fetching the nightlines: {str(e)}")
+            return []
 
     def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name"""
@@ -156,14 +156,14 @@ class Nightline(db.Model):
     def reset_status(self) -> Status:
         """Reset the status of a nightline to default"""
         logger.info(f"Reset the status of nightline: '{self.name}'")
-        return self.set_status("default")
+        return cast(Status, self.set_status("default"))
 
-    def get_instagram_story_config(self) -> Optional[bool]:
+    def get_instagram_story_config(self) -> bool:
         """Get the Instagram story config for the current status"""
-        for nightline_status in self.nightline_statuses:
+        for nightline_status in self.nightline_statuses:  # type: ignore[attr-defined]
             if nightline_status.status_id == self.status_id:
-                return nightline_status.instagram_story
-        return None
+                return cast(bool, nightline_status.instagram_story)
+        return False  # This would be an out of sync state
 
     def set_now(self, now: bool) -> None:
         """Set now value of a nightline"""
@@ -171,7 +171,7 @@ class Nightline(db.Model):
         self.now = now
         db.session.commit()
 
-    def set_instagram_media_id(self, media_id: str) -> None:
+    def set_instagram_media_id(self, media_id: Optional[str]) -> None:
         logger.debug(f"Setting media id for a status of nightline '{self.name}'")
         self.instagram_media_id = media_id
         db.session.commit()
@@ -249,7 +249,11 @@ class Nightline(db.Model):
     def post_instagram_story(self, status: Status) -> bool:
         instagram_username = self.instagram_account.username
         instagram_password = self.instagram_account.get_password()
-        nightline_status = NightlineStatus.get_nightline_status(status_id=status.id)
+        nightline_status = NightlineStatus.get_nightline_status(nightline_id=self.id, status_id=status.id)
+
+        if not nightline_status:
+            logger.warning(f"NightlineStatus not found for status '{status.name}' and nightline '{self.name}'")
+            return False
         story_slide_path = nightline_status.path
 
         # Check if posting an instagram story is configured

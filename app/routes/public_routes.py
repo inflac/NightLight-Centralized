@@ -1,4 +1,7 @@
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+
 from flask import request
+from flask.wrappers import Response
 from flask_restx import Namespace, Resource, abort
 
 from app.models import Nightline, Status
@@ -14,17 +17,18 @@ pb_nightline_status_model = public_ns.model("Nightline Status", nightline_status
 
 
 @public_ns.route("/<string:name>")
-class PublicNightlineStatusResource(Resource):
+class PublicNightlineStatusResource(Resource):  # type: ignore
     @sanitize_name
-    @public_ns.response(200, "Success", pb_nightline_status_model)
+    @public_ns.response(200, "Success", pb_nightline_status_model)  # type: ignore[misc]
     # Can be returend by sanitize_name
-    @public_ns.response(400, "Bad Request", pb_error_model)
-    @public_ns.response(404, "Nightline Not Found", pb_error_model)
-    def get(self, name):
+    @public_ns.response(400, "Bad Request", pb_error_model)  # type: ignore[misc]
+    @public_ns.response(404, "Nightline Not Found", pb_error_model)  # type: ignore[misc]
+    def get(self, name: str) -> Union[Tuple[Dict[str, Any], int], Response]:
         """Retrieve the status of a nightline"""
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, message=f"Nightline '{name}' not found")
+        nightline = cast(Nightline, nightline)  # Ensure mypi knows the type
 
         response = {
             "nightline_name": nightline.name,
@@ -40,30 +44,22 @@ class PublicNightlineStatusResource(Resource):
 
 # Resource to get the statuses of all nightlines with filter options
 @public_ns.route("/all")
-class PublicNightlineListResource(Resource):
-    @public_ns.param(
-        "status",
-        "Filter for the current status (e.g., 'default' or 'german-english'). Optional",
-    )
-    @public_ns.param(
-        "language",
-        "Language filter for to only include nightlines speaking a certain language. Optional",
-    )
-    @public_ns.param(
-        "now",
-        "Filter for nightlines that are currently available ('true' or 'false'). Optional",
-    )
-    @public_ns.response(200, "Success", [pb_nightline_status_model])
-    @public_ns.response(400, "Bad Request", pb_error_model)
-    def get(self):
+class PublicNightlineListResource(Resource):  # type: ignore
+    @public_ns.param("status", "Filter for the current status (e.g., 'default' or 'german-english'). Optional")  # type: ignore[misc]
+    @public_ns.param("language", "Language filter for to only include nightlines speaking a certain language. Optional")  # type: ignore[misc]
+    @public_ns.param("now", "Filter for nightlines that are currently available ('true' or 'false'). Optional")  # type: ignore[misc]
+    @public_ns.response(200, "Success", [pb_nightline_status_model])  # type: ignore[misc]
+    @public_ns.response(400, "Bad Request", pb_error_model)  # type: ignore[misc]
+    def get(self) -> Union[Tuple[List[Dict[str, Any]], int], Response]:
         """Retrieve the statuses of all nightlines with filter options"""
         status_filter = request.args.get("status")
         language_filter = request.args.get("language")
-        now_filter = request.args.get("now")
+        now_filter_str = request.args.get("now")
 
-        validate_filters(status_filter, language_filter, now_filter)
-        if now_filter:
-            now_filter = now_filter.lower() == "true"
+        validate_filters(status_filter, language_filter, now_filter_str)
+        now_filter: Optional[bool] = None
+        if now_filter_str is not None:
+            now_filter = now_filter_str.lower() == "true"
 
         # Fetch filtered nightlines
         nightlines = Nightline.list_nightlines(

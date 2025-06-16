@@ -1,8 +1,10 @@
 # config.py
 import logging
 import os
+from typing import List, Union
 
 from dotenv import load_dotenv
+from flask import Flask
 from flask_cors import CORS
 
 from .logger import create_logger
@@ -29,9 +31,10 @@ class Config:
     ENABLE_ADMIN_ROUTES = os.getenv("ENABLE_ADMIN_ROUTES", "false").lower() == "true"
 
     # Instagram encryption settings
-    ENCRYPTION_PASSWORD = os.getenv("ENCRYPTION_PASSWORD")
-    if not ENCRYPTION_PASSWORD:
+    password = os.getenv("ENCRYPTION_PASSWORD")
+    if not password:
         raise ValueError("ENCRYPTION_PASSWORD is not set in .env!")
+    ENCRYPTION_PASSWORD: str = password  # Solution to make mypy recognize type str
 
     # Toggle generating API documentation
     __generate_api_doc = os.getenv("GENERATE_API_DOCUMENTATION", "false").lower() == "true"
@@ -44,11 +47,11 @@ class Config:
     UPLOAD_FOLDER = "./instance/nightlines"
 
     @classmethod
-    def configure_cors(cls, app):
+    def configure_cors(cls, app: Flask) -> None:
         """Configure CORS (Websites allowed to access the API)"""
         allowed_websites = cls.CORS_ALLOWED_WEBSITES
         if allowed_websites == "*":
-            origins = "*"
+            origins: Union[str, List[str]] = "*"
         elif isinstance(allowed_websites, str):
             origins = [site.strip() for site in allowed_websites.split(",") if site.strip()]
         else:
