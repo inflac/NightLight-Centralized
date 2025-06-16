@@ -45,12 +45,6 @@ jobs:
           .venv/bin/pip install -r requirements.txt
           .venv/bin/pip install pip-audit bandit mypy
 
-      - name: Sort headers using isort
-        run: .venv/bin/isort $(git ls-files '*.py')
-
-      - name: Format code using black
-        run: .venv/bin/black $(git ls-files '*.py')
-
       - name: Lint with pylint
         run: .venv/bin/pylint --errors-only $(git ls-files '*.py') | tee pylint.log
 
@@ -58,7 +52,7 @@ jobs:
         run: .venv/bin/mypy app
 
       - name: Run pip-audit (dependency vulnerabilities)
-        run: .venv/bin/pip-audit --json
+        run: .venv/bin/pip-audit --format json
 
       - name: Run Bandit (static security analysis)
         run: .venv/bin/bandit -r app/ -ll -v

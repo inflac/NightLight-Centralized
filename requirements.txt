@@ -12,4 +12,6 @@ pylint
 isort
 mypy
 black
+pip-audit
+bandit
 pytest-cov
