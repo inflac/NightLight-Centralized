@@ -67,12 +67,15 @@ def create_logger(log_to_file: bool, file_log_format: str, log_level: str) -> lo
     global logger
 
     if log_level not in VALID_LOG_LEVELS:
-        logger.critical(f"The configured log level {log_level} is not valid! The logger will use 'info' now")
+        logger.critical(f"The configured log level '{log_level}' is not valid! The logger will use 'info' now")
         log_level = "INFO"
+
+    LOGGING_CONFIG["loggers"]["nightlight"]["level"] = log_level.upper()
 
     if log_to_file:
         file_handler = "file_json" if file_log_format == "json" else "file"
-        LOGGING_CONFIG["loggers"]["nightlight"]["handlers"].append(file_handler)
+        if file_handler not in LOGGING_CONFIG["loggers"]["nightlight"]["handlers"]:
+            LOGGING_CONFIG["loggers"]["nightlight"]["handlers"].append(file_handler)
 
     # Apply the logging configuration
     logging.config.dictConfig(LOGGING_CONFIG)

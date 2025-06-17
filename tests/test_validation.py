@@ -20,6 +20,12 @@ def test_validate_request_body_valid():
     assert validate_request_body({"key1": "value"}, ["key1"]) is True
 
 
+def test_validation_data_no_dict():
+    with patch("app.validation.abort") as mock_abort:
+        validate_request_body(["test"], [])
+        mock_abort.assert_called_once_with(400, message="Request body must be a valid JSON object")
+
+
 def test_validate_request_body_missing_one_key():
     with patch("app.validation.abort") as mock_abort:
         validate_request_body({"key1": "value"}, ["key1", "key2"])
