@@ -1,8 +1,6 @@
 from unittest.mock import patch
 import logging
-import pytest
-from app.logger import create_logger
-from app.logger import LOGGING_CONFIG
+from app.logger import LOGGING_CONFIG, create_logger
 
 @patch("app.logger.logger")
 def test_create_logger_invalid_log_level(mock_logger):

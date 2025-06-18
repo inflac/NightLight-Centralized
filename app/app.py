@@ -59,7 +59,8 @@ def create_app() -> Flask:
     logger.info("API blueprint registered")
 
     # Global error handlers
-    app.register_error_handler(500, internal_error)
+    app.register_error_handler(404, handle_404_error)
+    app.register_error_handler(500, handle_500_error)
     app.register_error_handler(RuntimeError, handle_runtime_error)
     app.register_error_handler(Exception, handle_generic_error)
     logger.info("Global error handlers registered")

@@ -10,7 +10,7 @@ from flask_cors import CORS
 from .logger import create_logger
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(dotenv_path=".env", override=True)
 
 
 class Config:

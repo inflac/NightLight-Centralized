@@ -1,7 +1,6 @@
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
 from app.story_post import delete_story_by_id, login_user, post_story
@@ -16,7 +15,7 @@ def mock_client():
 # login_user
 # -------------------------
 @patch("app.story_post.logger")
-def test_login_user_with_valid_session(mock_logger, mock_client):
+def test_login_user_with_valid_session(mock_client):
     mock_client.load_settings.return_value = {"uuids": "some-uuid"}
     mock_client.get_timeline_feed.return_value = {}
 
