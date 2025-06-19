@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from app.app import Config, create_app
+from app.app import create_app
 
 
 # -------------------------

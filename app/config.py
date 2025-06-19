@@ -53,7 +53,8 @@ class Config:
         if allowed_websites == "*":
             origins: Union[str, List[str]] = "*"
         elif isinstance(allowed_websites, str):
-            origins = [site.strip() for site in allowed_websites.split(",") if site.strip()]
+            # Filter only valid HTTP/HTTPS origins
+            origins = [site.strip() for site in allowed_websites.split(",") if site.strip().startswith("http://") or site.strip().startswith("https://")]
         else:
             origins = ""
         CORS(app, origins=origins)
