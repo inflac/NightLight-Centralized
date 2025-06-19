@@ -18,8 +18,6 @@ config_overrides = {
 # -------------------------
 # create_app
 # -------------------------
-
-
 def test_create_app_suppresses_known_operational_error():
     with patch("app.app.db.create_all") as mock_create_all:
         mock_create_all.side_effect = OperationalError("table statuses already exists", None, None)
