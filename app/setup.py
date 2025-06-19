@@ -1,12 +1,11 @@
 from sqlalchemy.exc import SQLAlchemyError
 
 from .db import db
+from .logger import logger
 from .models import Status
 
 
 def preinitialize_statuses() -> bool:
-    from .logger import logger
-
     """Pre-initialize default statuses if they don't exist"""
     default_statuses = [
         {

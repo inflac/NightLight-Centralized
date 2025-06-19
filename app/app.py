@@ -1,3 +1,5 @@
+from typing import Optional
+
 from flask import Blueprint, Flask
 from flask_restx import Api
 from sqlalchemy.exc import OperationalError
@@ -5,12 +7,14 @@ from sqlalchemy.exc import OperationalError
 from app.config import Config
 from app.db import db
 from app.routes import *
-from app.setup import preinitialize_statuses
 
 
-def create_app() -> Flask:
+def create_app(config_overrides: Optional[dict[str, str]] = None) -> Flask:
     app = Flask(__name__)
+
     app.config.from_object(Config)
+    if config_overrides:
+        app.config.update(config_overrides)
 
     # Set up logging
     logger = Config.configure_logging()
@@ -21,6 +25,8 @@ def create_app() -> Flask:
 
     db.init_app(app)
     logger.info("Database initialized")
+
+    from app.setup import preinitialize_statuses
 
     with app.app_context():
         try:
