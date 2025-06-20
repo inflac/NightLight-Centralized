@@ -10,7 +10,6 @@ __all__ = [
     "nightline_ns",
     "admin_status_ns",
     "handle_404_error",
-    "handle_500_error",
     "handle_runtime_error",
     "handle_generic_error",
 ]
