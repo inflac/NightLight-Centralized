@@ -11,7 +11,10 @@ ALLOWED_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg"]
 
 def validate_file_extension(file: FileStorage) -> Optional[str]:
     """Validate the a file extension"""
-    if not file.filename:
+    if not isinstance(file, FileStorage) or not file.filename:
+        return None
+
+    if "." not in file.filename:
         return None
 
     extension = file.filename.rsplit(".", maxsplit=1)[1].lower()

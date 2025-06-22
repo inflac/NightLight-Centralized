@@ -17,6 +17,7 @@
 * Add authentication for routes
 * Reevaluate error handling and rollbacks in db models
 * Add tests
+* Allow mp4/gif story slides
 * Add git pipeline
 * Readme
 * [ratelimiting](https://flask-limiter.readthedocs.io/en/stable/)
