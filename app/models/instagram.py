@@ -1,13 +1,16 @@
 import base64
 import os
+from typing import Optional
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import Config
 from app.db import db
+from app.logger import logger
 
 
 class InstagramAccount(db.Model):  # type: ignore
@@ -37,19 +40,39 @@ class InstagramAccount(db.Model):  # type: ignore
         key = base64.urlsafe_b64encode(kdf.derive(Config.ENCRYPTION_PASSWORD.encode()))
         return Fernet(key)
 
-    def set_username(self, username: str) -> None:
-        """Set the username of an account."""
+    def set_username(self, username: str) -> bool:
+        """Set the username of an account. Returns True if successful, False otherwise."""
         self.username = username
-        db.session.commit()
+        try:
+            db.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Failed to set username for user_id={self.id}: {e}")
+            return False
 
-    def set_password(self, password: str) -> None:
+    def set_password(self, password: str) -> bool:
         """Securely store the password of an account."""
-        self.salt = base64.urlsafe_b64encode(os.urandom(16)).decode()  # Generate a 16-byte salt
-        cipher = self.derive_key()
-        self.encrypted_password = cipher.encrypt(password.encode()).decode()
-        db.session.commit()
+        try:
+            self.salt = base64.urlsafe_b64encode(os.urandom(16)).decode()  # Generate a 16-byte salt
+            cipher = self.derive_key()
+            self.encrypted_password = cipher.encrypt(password.encode()).decode()
+            db.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"Database error when setting password for user_id={self.id}: {e}")
+            return False
+        except Exception as e:
+            db.session.rollback()
+            logger.exception(f"Unexpected error when setting password for user_id={self.id}: {e}")
+            return False
 
-    def get_password(self) -> str:
-        """Decrypts and returns the stored password."""
-        cipher = self.derive_key()
-        return cipher.decrypt(self.encrypted_password.encode()).decode()
+    def get_password(self) -> Optional[str]:
+        """Decrypts and returns the stored password. Returns None if decryption fails."""
+        try:
+            cipher = self.derive_key()
+            return cipher.decrypt(self.encrypted_password.encode()).decode()
+        except Exception:
+            logger.exception(f"Failed to decrypt password for user_id={self.id}")
+            return None

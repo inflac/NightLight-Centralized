@@ -68,13 +68,13 @@ class Nightline(db.Model):  # type: ignore
             return new_nightline
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error adding nightline '{name}': {str(e)}")
+            logger.error(f"Error adding nightline '{name}': {e}")
             return None
 
     @classmethod
     def remove_nightline(cls, name: str) -> Optional["Nightline"]:
         """Remove a nightline from the database"""
-        logger.debug(f"Removing nightline: {name}")
+        logger.debug(f"Removing nightline: '{name}'")
 
         nightline = cls.get_nightline(name)
         if not nightline:
@@ -82,8 +82,8 @@ class Nightline(db.Model):  # type: ignore
             return None
 
         api_key = ApiKey.get_api_key(nightline.id)
-        if not api_key:
-            logger.info(f"Api key for nightline '{name}' not found, can't remove the nightline")
+        if not api_key:  # This would be an out-of-sync state where the nightline exists but no API-Key. Might occure on previous exception in deletetion
+            logger.warning(f"Api key for nightline '{name}' not found, can't remove the nightline")
             return None
 
         NightlineStatus.delete_statuses_for_nightline(nightline)
@@ -100,7 +100,7 @@ class Nightline(db.Model):  # type: ignore
             return nightline
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error removing nightline '{name}': {str(e)}")
+            logger.error(f"Error removing nightline '{name}': {e}")
             return None
 
     @classmethod
@@ -136,27 +136,45 @@ class Nightline(db.Model):  # type: ignore
             return nightlines
 
         except Exception as e:
-            logger.error(f"Error while fetching the nightlines: {str(e)}")
+            logger.error(f"Error while fetching the nightlines: {e}")
             return []
 
     def set_status(self, name: str) -> Optional[Status]:
         """Set the status of a nightline by the status name"""
         logger.debug(f"Set status of nightline '{self.name}' to: '{name}'")
 
-        new_status = Status.get_status(name)
-        if not new_status:
+        try:
+            new_status = Status.get_status(name)
+            if not new_status:
+                logger.info(f"Status '{name}' not found. Status not changed")
+                return None
+
+            self.status = new_status
+            db.session.commit()
+
+            logger.info(f"Status '{name}' set successfully")
+            return new_status
+        except Exception as e:
+            logger.error(f"Failed to set status '{name}' for nightline '{self.name}': {e}")
+            db.session.rollback()
             return None
-
-        self.status = new_status
-        db.session.commit()
-
-        logger.info(f"Status '{name}' set successfully")
-        return new_status
 
     def reset_status(self) -> Status:
         """Reset the status of a nightline to default"""
         logger.info(f"Reset the status of nightline: '{self.name}'")
         return cast(Status, self.set_status("default"))
+
+    def set_now(self, now: bool) -> bool:
+        """Set now value of a nightline"""
+        try:
+            logger.info(f"Set the now value of nightline: '{self.name}' to: '{now}'")
+            self.now = now
+            db.session.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set now value for nightline '{self.name}' to '{now}': {e}")
+            db.session.rollback()
+            return False
 
     def get_instagram_story_config(self) -> bool:
         """Get the Instagram story config for the current status"""
@@ -164,12 +182,6 @@ class Nightline(db.Model):  # type: ignore
             if nightline_status.status_id == self.status_id:
                 return cast(bool, nightline_status.instagram_story)
         return False  # This would be an out of sync state
-
-    def set_now(self, now: bool) -> None:
-        """Set now value of a nightline"""
-        logger.info(f"Set the now value of nightline: '{self.name}' to: '{now}'")
-        self.now = now
-        db.session.commit()
 
     def set_instagram_media_id(self, media_id: Optional[str]) -> None:
         logger.debug(f"Setting media id for a status of nightline '{self.name}'")

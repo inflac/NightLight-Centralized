@@ -7,6 +7,7 @@ from app.app import create_app
 def app():
     overrides = {
         "TESTING": True,
+        "ENCRYPTION_PASSWORD": "testpassword",
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SQLALCHEMY_TRACK_MODIFICATIONS": False,
         "ENABLE_ADMIN_ROUTES": False,
