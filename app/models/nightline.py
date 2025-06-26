@@ -100,6 +100,7 @@ class Nightline(db.Model):  # type: ignore
             logger.info(f"Nightline '{name}' removed successfully")
             return nightline
         except Exception as e:
+            NightlineStatus.add_statuses_for_new_nightlines(nightline)  # Re-add the statuses to prevent getting out of sync
             db.session.rollback()
             logger.error(f"Error removing nightline '{name}': {e}")
             return None
@@ -140,7 +141,7 @@ class Nightline(db.Model):  # type: ignore
             logger.error(f"Error while fetching the nightlines: {e}")
             return []
 
-    def set_status(self, name: str) -> Optional[Status]:
+    def set_status(self, name: str) -> bool:
         """Set the status of a nightline by the status name"""
         logger.debug(f"Set status of nightline '{self.name}' to: '{name}'")
 
@@ -148,22 +149,22 @@ class Nightline(db.Model):  # type: ignore
             new_status = Status.get_status(name)
             if not new_status:
                 logger.info(f"Status '{name}' not found. Status not changed")
-                return None
+                return False
 
             self.status = new_status
             db.session.commit()
 
             logger.info(f"Status '{name}' set successfully")
-            return new_status
+            return True
         except Exception as e:
             logger.error(f"Failed to set status '{name}' for nightline '{self.name}': {e}")
             db.session.rollback()
-            return None
+            return False
 
-    def reset_status(self) -> Status:
+    def reset_status(self) -> bool:
         """Reset the status of a nightline to default"""
         logger.info(f"Reset the status of nightline: '{self.name}'")
-        return cast(Status, self.set_status("default"))
+        return self.set_status("default")
 
     def set_now(self, now: bool) -> bool:
         """Set now value of a nightline"""
@@ -179,10 +180,10 @@ class Nightline(db.Model):  # type: ignore
 
     def get_instagram_story_config(self) -> bool:
         """Get the Instagram story config for the current status"""
-        for nightline_status in self.nightline_statuses:  # type: ignore[attr-defined]
-            if nightline_status.status_id == self.status_id:
-                return cast(bool, nightline_status.instagram_story)
-        return False  # This would be an out of sync state
+        nightline_status = NightlineStatus.get_nightline_status(nightline_id=self.id, status_id=self.status.id)
+        if nightline_status:
+            return cast(bool, nightline_status.instagram_story)
+        return False
 
     def set_instagram_media_id(self, media_id: Optional[str]) -> bool:
         logger.debug(f"Setting media id for a status of nightline '{self.name}'")
@@ -241,7 +242,7 @@ class Nightline(db.Model):  # type: ignore
     def update_instagram_username(self, new_username: str) -> bool:
         """Updates the Instagram account's username."""
         if not self.instagram_account:
-            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
             return False
 
         try:
@@ -258,7 +259,7 @@ class Nightline(db.Model):  # type: ignore
     def update_instagram_password(self, new_password: str) -> bool:
         """Updates the Instagram account's password."""
         if not self.instagram_account:
-            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
             return False
 
         try:
@@ -275,7 +276,7 @@ class Nightline(db.Model):  # type: ignore
     def delete_instagram_account(self) -> bool:
         """Deletes the associated Instagram account."""
         if not self.instagram_account:
-            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
             return False
 
         try:
@@ -289,30 +290,49 @@ class Nightline(db.Model):  # type: ignore
             db.session.rollback()
             return False
 
-    def post_instagram_story(self, status: Status) -> bool:
-        instagram_username = self.instagram_account.username
-        instagram_password = self.instagram_account.get_password()
+    def post_instagram_story(self, status_name: str) -> bool:
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
+            return False
+
+        status = Status.get_status(status_name)
+        if not status:
+            logger.warning(f"No status with name '{status_name}' found.")
+            return False
+
         nightline_status = NightlineStatus.get_nightline_status(nightline_id=self.id, status_id=status.id)
 
         if not nightline_status:
-            logger.warning(f"NightlineStatus not found for status '{status.name}' and nightline '{self.name}'.")
+            logger.warning(f"NightlineStatus not found for status '{status_name}' and nightline '{self.name}'.")
             return False
-        story_slide_path = nightline_status.path
 
         # Check if posting an Instagram story is configured
-        if not nightline_status.instagram_story or not nightline_status.instagram_story_slide:
-            logger.info(f"Posting an Instagram story is not configured for status '{status.name}' of nightline '{self.name}'.")
+        if not nightline_status.instagram_story:
+            logger.info(f"Posting an Instagram story is not configured for status '{status_name}' of nightline '{self.name}'.")
+            return False
+
+        # Check if a story slide is configured
+        if not nightline_status.instagram_story_slide:
+            logger.info(f"No Instagram story slide configured for status '{status_name}' of nightline '{self.name}'.")
             return False
 
         # Post the story
+        instagram_username = self.instagram_account.username
+        instagram_password = self.instagram_account.get_password()
+        story_slide_path = nightline_status.instagram_story_slide.path
         media_id = post_story(story_slide_path, instagram_username, instagram_password)
-        if media_id:
-            self.set_instagram_media_id(media_id)
+        if media_id and self.set_instagram_media_id(media_id):
+            logger.info(f"Successfully posted Instagram story for status '{status_name}' of nightline '{self.name}'.")
             return True
         else:
+            logger.error(f"Failed to post Instagram story (no media ID returned) for nightline '{self.name}'.")
             return False
 
     def delete_instagram_story(self) -> bool:
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
+            return False
+
         if not self.instagram_media_id:
             logger.debug("No story to delete because no media id is set")
             return True
@@ -320,10 +340,16 @@ class Nightline(db.Model):  # type: ignore
         username = self.instagram_account.username
         password = self.instagram_account.get_password()
 
-        if delete_story_by_id(self.instagram_media_id, username, password):
-            self.set_instagram_media_id(None)
-            return True
-        return False
+        if not delete_story_by_id(self.instagram_media_id, username, password):
+            logger.error(f"Failed to delete Instagram story with media ID '{self.instagram_media_id}' for nightline '{self.name}'.")
+            return False
+
+        if not self.set_instagram_media_id(None):
+            logger.error(f"Story deleted but failed to unset media ID for nightline '{self.name}'.")
+            return False
+
+        logger.info(f"Successfully deleted Instagram story for nightline '{self.name}'.")
+        return True
 
     def __repr__(self) -> str:
         return f"Nightline('{self.name}')"

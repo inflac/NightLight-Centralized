@@ -52,20 +52,20 @@ class NightlineStatusResource(Resource):  # type: ignore
 
         status_value = data["status"]  # type: ignore[index]
         validate_status_value(status_value)  # Validate status name format
+        status_value = status_value.strip()
 
         nightline = Nightline.get_nightline(name)
         if not nightline:
             abort(404, f"Nightline '{name}' not found")
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
-        status = nightline.set_status(status_value.strip())
-        if not status:
+        if not nightline.set_status(status_value):
             abort(500, f"Updating the status failed")
-        status = cast(Status, status)
 
         # If configured post an instagram story
-        if not nightline.post_instagram_story(status=status):
-            abort(500, f"Status updated but uploading an instagram story post failed")
+        if nightline.get_instagram_story_config():
+            if not nightline.post_instagram_story(status_value):
+                abort(500, f"Status updated but uploading an instagram story post failed")
 
         response = {"message": f"Status successfully updated to: {status_value}"}
         return response, 200
@@ -129,8 +129,8 @@ class NightlineStatusConfigResource(Resource):  # type: ignore
             abort(400, message=f"Status '{status_value}' not found")
         status = cast(Status, status)
 
-        # Validate a story slide is set if instagram_story == 'True'
-        if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.id):
+        # Validate a story slide is set if instagram_story is True
+        if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.name):
             abort(400, f"No story slide set for status '{status.name}' of nightline '{nightline.name}'")
 
         if not NightlineStatus.update_instagram_story(nightline, status, instagram_story):

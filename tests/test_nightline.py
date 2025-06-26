@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.apikey import ApiKey
 from app.models.nightline import Nightline
+from app.models.nightlinestatus import NightlineStatus
 from app.models.status import Status
 
 
@@ -190,8 +191,7 @@ def test_list_nightlines_exception(mock_query, mock_logger):
 @patch("app.models.nightline.logger")
 def test_set_status_successfull(mock_logger):
     nightline = Nightline.get_nightline("templine")
-    status = Status.get_status("english")
-    assert nightline.set_status("english") == status
+    assert nightline.set_status("english") is True
 
     mock_logger.debug.assert_any_call(f"Set status of nightline '{nightline.name}' to: 'english'")
     mock_logger.info.assert_called_once_with(f"Status 'english' set successfully")
@@ -200,7 +200,7 @@ def test_set_status_successfull(mock_logger):
 @patch("app.models.nightline.logger")
 def test_set_status_no_valid_status(mock_logger):
     nightline = Nightline.get_nightline("templine")
-    assert nightline.set_status("bsod") == None
+    assert nightline.set_status("bsod") is False
 
     mock_logger.debug.assert_any_call(f"Set status of nightline '{nightline.name}' to: 'bsod'")
 
@@ -211,7 +211,7 @@ def test_set_status_exception(mock_get_status, mock_logger):
     mock_get_status.side_effect = Exception("Unknown Error")
 
     nightline = Nightline.get_nightline("templine")
-    assert nightline.set_status("bsod") == None
+    assert nightline.set_status("bsod") is False
 
     mock_logger.debug.assert_any_call(f"Set status of nightline '{nightline.name}' to: 'bsod'")
     mock_logger.error.assert_called_once_with(f"Failed to set status 'bsod' for nightline '{nightline.name}': Unknown Error")
@@ -223,9 +223,8 @@ def test_set_status_exception(mock_get_status, mock_logger):
 @patch("app.models.nightline.logger")
 def test_reset_status_successfull(mock_logger):
     nightline = Nightline.get_nightline("templine")
-    status = Status.get_status("default")
 
-    assert nightline.reset_status() == status
+    assert nightline.reset_status() is True
 
     mock_logger.info.assert_any_call(f"Reset the status of nightline: '{nightline.name}'")
 
@@ -257,9 +256,24 @@ def test_set_now_exception(mock_commit, mock_logger):
 # -------------------------
 # get_instagram_story_config
 # -------------------------
-def test_get_instagram_story_config_successfull():
+def test_get_instagram_story_config_story_false():
     nightline = Nightline.get_nightline("templine")
     nightline.set_status("technical-issues")
+
+    assert nightline.get_instagram_story_config() is False
+
+
+def test_get_instagram_story_config_story_true():
+    nightline = Nightline.get_nightline("templine")
+    NightlineStatus.update_instagram_story(nightline, nightline.status, True)
+
+    assert nightline.get_instagram_story_config() is True
+
+
+@patch("app.models.nightline.NightlineStatus.get_nightline_status")
+def test_get_instagram_story_config_story_nightline_status_none(mock_get_nightline_status):
+    mock_get_nightline_status.return_value = None
+    nightline = Nightline.get_nightline("templine")
 
     assert nightline.get_instagram_story_config() is False
 
@@ -420,7 +434,7 @@ def test_update_instagram_username_no_instagram_acc_added(mock_logger):
 
     assert nightline.update_instagram_username("new_user123") is False
 
-    mock_logger.warning.assert_called_once_with(f"No Instagram account found for Nightline '{nightline.name}'.")
+    mock_logger.warning.assert_called_once_with(f"No Instagram account configured for nightline '{nightline.name}'.")
 
 
 # -------------------------
@@ -432,7 +446,7 @@ def test_update_instagram_password_no_instagram_acc_added(mock_logger):
 
     assert nightline.update_instagram_password("new_pass123") is False
 
-    mock_logger.warning.assert_called_once_with(f"No Instagram account found for Nightline '{nightline.name}'.")
+    mock_logger.warning.assert_called_once_with(f"No Instagram account configured for nightline '{nightline.name}'.")
 
 
 @patch("app.models.nightline.logger")
@@ -491,9 +505,172 @@ def test_delete_instagram_account_no_instagram_acc_added(mock_logger):
 
     assert nightline.delete_instagram_account() is False
 
-    mock_logger.warning(f"No Instagram account found for Nightline '{nightline.name}'.")
+    mock_logger.warning(f"No Instagram account configured for nightline '{nightline.name}'.")
 
 
 # -------------------------
 # post_instagram_story
 # -------------------------
+@patch("app.models.nightline.logger")
+def test_post_instagram_story_no_instagram_acc_added(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+
+    status_name = "canceled"
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.warning.assert_called_once_with(f"No Instagram account configured for nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+def test_post_instagram_story_bad_status(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+    nightline.add_instagram_account("test_user", "test_pw")
+
+    status_name = "bad_status_name"
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.warning.assert_called_once_with(f"No status with name '{status_name}' found.")
+
+
+@patch("app.models.nightline.logger")
+@patch("app.models.nightlinestatus.NightlineStatus.get_nightline_status")
+def test_post_instagram_story_nightline_status_not_found(mock_get_nightline_status, mock_logger):
+    nightline = Nightline.get_nightline("templine")
+    Status.add_status("custom_status", "", "", "", "")
+
+    mock_get_nightline_status.return_value = None
+
+    status_name = "custom_status"
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.warning.assert_called_once_with(f"NightlineStatus not found for status '{status_name}' and nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+def test_post_instagram_story_instagram_story_posts_turned_off_for_status(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+
+    status_name = "custom_status"
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.info.assert_called_once_with(f"Posting an Instagram story is not configured for status '{status_name}' of nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+def test_post_instagram_story_no_story_slide_configured(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+    status_name = "custom_status"
+    status = Status.get_status(status_name)
+    NightlineStatus.update_instagram_story(nightline, status, True)
+
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.info.assert_called_once_with(f"No Instagram story slide configured for status '{status_name}' of nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+@patch("app.models.nightline.post_story")
+@patch("app.models.nightline.NightlineStatus.get_nightline_status")
+def test_post_instagram_story_successfull(mock_get_nightline_status, mock_post_story, mock_logger):
+    mock_nl_status = MagicMock()
+    mock_nl_status.instagram_story = True
+    mock_nl_status.instagram_story_slide.path = "/fake/path/to/slide.jpg"
+    mock_get_nightline_status.return_value = mock_nl_status
+
+    mock_post_story.return_value = "fake_media_id"
+
+    nightline = Nightline.get_nightline("templine")
+
+    status_name = "custom_status"
+    assert nightline.post_instagram_story(status_name) is True
+
+    mock_logger.info.assert_called_once_with(f"Successfully posted Instagram story for status '{status_name}' of nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+@patch("app.models.nightline.post_story")
+@patch("app.models.nightline.NightlineStatus.get_nightline_status")
+def test_post_instagram_story_posting_fails(mock_get_nightline_status, mock_post_story, mock_logger):
+    mock_nl_status = MagicMock()
+    mock_nl_status.instagram_story = True
+    mock_nl_status.instagram_story_slide.path = "/fake/path/to/slide.jpg"
+    mock_get_nightline_status.return_value = mock_nl_status
+
+    mock_post_story.return_value = None
+
+    nightline = Nightline.get_nightline("templine")
+
+    status_name = "custom_status"
+    assert nightline.post_instagram_story(status_name) is False
+
+    mock_logger.error.assert_called_once_with(f"Failed to post Instagram story (no media ID returned) for nightline '{nightline.name}'.")
+
+
+# -------------------------
+# delete_instagram_story
+# -------------------------
+@patch("app.models.nightline.logger")
+@patch("app.models.nightline.delete_story_by_id")
+def test_delete_instagram_story_delete_story_by_id_fails(mock_delete_story_by_id, mock_logger):
+    mock_delete_story_by_id.return_value = False
+
+    nightline = Nightline.get_nightline("templine")
+
+    assert nightline.delete_instagram_story() is False
+
+    mock_logger.error.assert_any_call(f"Failed to delete Instagram story with media ID '{nightline.instagram_media_id}' for nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+@patch("app.models.nightline.delete_story_by_id")
+@patch("app.models.nightline.Nightline.set_instagram_media_id")
+def test_delete_instagram_story_set_instagram_media_id_fais(mock_set_instagram_media_id, mock_delete_story_by_id, mock_logger):
+    mock_delete_story_by_id.return_value = True
+    mock_set_instagram_media_id.return_value = False
+
+    nightline = Nightline.get_nightline("templine")
+
+    assert nightline.delete_instagram_story() is False
+
+    mock_logger.error.assert_any_call(f"Story deleted but failed to unset media ID for nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+@patch("app.models.nightline.delete_story_by_id")
+def test_delete_instagram_story_successfull(mock_delete_story_by_id, mock_logger):
+    mock_delete_story_by_id.return_value = True
+
+    nightline = Nightline.get_nightline("templine")
+
+    assert nightline.delete_instagram_story() is True
+
+    mock_logger.info.assert_any_call(f"Successfully deleted Instagram story for nightline '{nightline.name}'.")
+
+
+@patch("app.models.nightline.logger")
+def test_delete_instagram_story_missing_instagram_media_id(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+
+    assert nightline.delete_instagram_story() is True
+
+    mock_logger.debug.assert_any_call("No story to delete because no media id is set")
+
+
+@patch("app.models.nightline.logger")
+def test_delete_instagram_story_no_instagram_acc_added(mock_logger):
+    nightline = Nightline.get_nightline("templine")
+    nightline.delete_instagram_account()
+
+    assert nightline.delete_instagram_story() is False
+
+    mock_logger.warning.assert_called_once_with(f"No Instagram account configured for nightline '{nightline.name}'.")
+
+
+# -------------------------
+# __repr__
+# -------------------------
+def test_nightline_repr():
+    nightline = Nightline()
+    nightline.name = "templine"
+
+    assert repr(nightline) == "Nightline('templine')"
