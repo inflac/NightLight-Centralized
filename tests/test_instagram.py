@@ -1,12 +1,12 @@
+import base64
 from unittest.mock import patch
 
 import pytest
-import base64
+from cryptography.fernet import Fernet
 from sqlalchemy.exc import SQLAlchemyError
 
-from cryptography.fernet import Fernet
-
 from app.models.instagram import InstagramAccount
+
 
 # -------------------------
 # validate_file_extension
@@ -18,7 +18,7 @@ def test_derive_key_returns_fernet_instance():
     insta.salt = example_salt
 
     fernet = insta.derive_key()
-    assert isinstance(fernet, Fernet) # Check if derive_key returns a valid Fernet instance
+    assert isinstance(fernet, Fernet)  # Check if derive_key returns a valid Fernet instance
 
     # Check if key can be used for enc/dec
     secret_message = b"hello"
@@ -34,6 +34,7 @@ def test_set_username_successful():
     acc = InstagramAccount()
     assert acc.set_username("test") is True
 
+
 @patch("app.models.instagram.logger")
 @patch("app.models.instagram.db.session.commit")
 def test_set_username_exception(mock_commit, mock_logger):
@@ -42,7 +43,7 @@ def test_set_username_exception(mock_commit, mock_logger):
     acc = InstagramAccount(id=1337)
 
     result = acc.set_username("test")
-    
+
     assert result is False
     mock_logger.error.assert_called_with(f"Failed to set username for user_id={acc.id}: DB error")
 
@@ -61,6 +62,7 @@ def test_set_password_sqlalchemy_exception(mock_commit, mock_logger):
     assert acc.set_password("meow") is False
 
     mock_logger.error(f"Database error when setting password for user_id={acc.id}: DB error")
+
 
 @patch("app.models.instagram.logger")
 @patch("base64.urlsafe_b64encode")

@@ -1,6 +1,7 @@
 from typing import List, Optional, cast
 
 from sqlalchemy import or_
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.logger import logger
 from app.story_post import delete_story_by_id, post_story
@@ -183,10 +184,16 @@ class Nightline(db.Model):  # type: ignore
                 return cast(bool, nightline_status.instagram_story)
         return False  # This would be an out of sync state
 
-    def set_instagram_media_id(self, media_id: Optional[str]) -> None:
+    def set_instagram_media_id(self, media_id: Optional[str]) -> bool:
         logger.debug(f"Setting media id for a status of nightline '{self.name}'")
-        self.instagram_media_id = media_id
-        db.session.commit()
+        try:
+            self.instagram_media_id = media_id
+            db.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while setting Instagram media id for nightline '{self.name}': {e}")
+            db.session.rollback()
+            return False
 
     def get_api_key(self) -> Optional[ApiKey]:
         """Get the API key"""
@@ -197,65 +204,89 @@ class Nightline(db.Model):  # type: ignore
         logger.debug(f"Renew api key of nightline: '{self.name}'")
 
         api_key = ApiKey.get_api_key(self.id)
-        if api_key:
+        if not api_key:
+            logger.warning(f"No API key found for nightline: '{self.name}'")
+            return False
+
+        try:
             api_key.key = ApiKey.generate_api_key()
             db.session.commit()
 
-            logger.info(f"Api key for nightline '{self.name}' renewed successfully")
+            logger.info(f"API key for nightline '{self.name}' renewed successfully")
             return True
-
-        logger.error(f"No api key found for nightline: '{self.name}'")
-        return False
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while renewing API key for nightline '{self.name}': {e}")
+            db.session.rollback()
+            return False
 
     def add_instagram_account(self, username: str, password: str) -> bool:
         """Creates an Instagram account for the Nightline and saves it."""
-        if not self.instagram_account:
+        if self.instagram_account:
+            logger.warning(f"Instagram account already exists for nightline '{self.name}'")
+            return False
+
+        try:
             insta_account = InstagramAccount(nightline_id=self.id, username=username)
-            # Automatically encrypts and saves the password
-            insta_account.set_password(password)
+            insta_account.set_password(password)  # Assumes password is encrypted internally
             db.session.add(insta_account)
             db.session.commit()
 
-            logger.info(f"Instagram account added for nightline {self.name} with username {username}")
+            logger.info(f"Instagram account added for nightline '{self.name}' with username '{username}'")
             return True
-        else:
-            logger.warning(f"Instagram account already exists for nightline {self.name}")
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while adding Instagram account for nightline '{self.name}': {e}")
+            db.session.rollback()
             return False
 
     def update_instagram_username(self, new_username: str) -> bool:
         """Updates the Instagram account's username."""
-        if self.instagram_account:
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            return False
+
+        try:
             self.instagram_account.set_username(new_username)
             db.session.commit()
 
-            logger.info(f"Instagram username updated to {new_username} for Nightline {self.name}.")
+            logger.info(f"Instagram username updated to '{new_username}' for Nightline '{self.name}'.")
             return True
-        else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while updating username of Instagram account for nightline '{self.name}': {e}")
+            db.session.rollback()
             return False
 
     def update_instagram_password(self, new_password: str) -> bool:
         """Updates the Instagram account's password."""
-        if self.instagram_account:
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            return False
+
+        try:
             self.instagram_account.set_password(new_password)
             db.session.commit()
 
-            logger.info(f"Instagram password updated for Nightline {self.name}.")
+            logger.info(f"Instagram password updated for Nightline '{self.name}'.")
             return True
-        else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while updating password of Instagram account for nightline '{self.name}': {e}")
+            db.session.rollback()
             return False
 
     def delete_instagram_account(self) -> bool:
         """Deletes the associated Instagram account."""
-        if self.instagram_account:
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account found for Nightline '{self.name}'.")
+            return False
+
+        try:
             db.session.delete(self.instagram_account)
             db.session.commit()
 
-            logger.info(f"Instagram account deleted for Nightline {self.name}.")
+            logger.info(f"Instagram account deleted for Nightline '{self.name}'.")
             return True
-        else:
-            logger.warning(f"No Instagram account found for Nightline {self.name}.")
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while deleting Instagram account of nightline '{self.name}': {e}")
+            db.session.rollback()
             return False
 
     def post_instagram_story(self, status: Status) -> bool:
@@ -264,13 +295,13 @@ class Nightline(db.Model):  # type: ignore
         nightline_status = NightlineStatus.get_nightline_status(nightline_id=self.id, status_id=status.id)
 
         if not nightline_status:
-            logger.warning(f"NightlineStatus not found for status '{status.name}' and nightline '{self.name}'")
+            logger.warning(f"NightlineStatus not found for status '{status.name}' and nightline '{self.name}'.")
             return False
         story_slide_path = nightline_status.path
 
-        # Check if posting an instagram story is configured
+        # Check if posting an Instagram story is configured
         if not nightline_status.instagram_story or not nightline_status.instagram_story_slide:
-            logger.info(f"Posting an instagram story is not configured for status '{status.name}' of nightline '{self.name}'")
+            logger.info(f"Posting an Instagram story is not configured for status '{status.name}' of nightline '{self.name}'.")
             return False
 
         # Post the story
