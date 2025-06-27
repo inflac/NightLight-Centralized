@@ -4,6 +4,7 @@ from app.models.nightlinestatus import NightlineStatus
 from app.config import Config
 
 from unittest.mock import patch
+from sqlalchemy.exc import SQLAlchemyError
 
 from werkzeug.datastructures import FileStorage
 from io import BytesIO
@@ -132,3 +133,55 @@ def test_get_story_slide_by_nightline_status_successfully(mock__save_story_slide
 
     mock_logger.debug.assert_any_call(f"Fetching story slide for nightline status with ID: '{nightline_status.id}'")
     mock_logger.debug.assert_any_call(f"Found story slide for status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}'")
+
+
+# -------------------------
+# update_story_slide
+# -------------------------
+@patch("app.models.storyslide.StorySlide._save_story_slide_file")
+def test_update_story_slide_saving_fails(mock__save_story_slide_file):
+    mock__save_story_slide_file.return_value = None
+    
+    nightline = Nightline.get_nightline("storyslide_line")
+    nightline_status = NightlineStatus.get_nightline_status(nightline.id, nightline.status.id)
+
+    assert StorySlide.update_story_slide(sample_jpg, nightline_status) is None
+
+@patch("app.models.storyslide.logger")
+@patch("app.models.storyslide.StorySlide._save_story_slide_file")
+def test_update_story_slide_update_existing_successfully(mock__save_story_slide_file, mock_logger):
+    mock__save_story_slide_file.return_value = "./fake/path"
+    
+    nightline = Nightline.get_nightline("storyslide_line")
+    nightline_status = NightlineStatus.get_nightline_status(nightline.id, nightline.status.id)
+
+    assert isinstance(StorySlide.update_story_slide(sample_jpg, nightline_status), StorySlide)
+
+    mock_logger.info.assert_called_once_with(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' updated successfully")
+
+@patch("app.models.storyslide.logger")
+@patch("app.models.storyslide.StorySlide._save_story_slide_file")
+@patch("app.models.storyslide.db.session.commit")
+def test_update_story_slide_database_error(mock_commit, mock__save_story_slide_file, mock_logger):
+    mock__save_story_slide_file.return_value = "./fake/path"
+    mock_commit.side_effect = SQLAlchemyError("Database error")
+
+    nightline = Nightline.get_nightline("storyslide_line")
+    nightline_status = NightlineStatus.get_nightline_status(nightline.id, nightline.status.id)
+
+    assert StorySlide.update_story_slide(sample_jpg, nightline_status) is None
+
+    mock_logger.error.assert_called_once_with(f"Error creating StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}': Database error")
+
+@patch("app.models.storyslide.logger")
+@patch("app.models.storyslide.StorySlide._save_story_slide_file")
+def test_update_story_slide_create_new_successfully(mock__save_story_slide_file, mock_logger):
+    mock__save_story_slide_file.return_value = "./fake/path"
+    
+    nightline = Nightline.get_nightline("storyslide_line")
+    nightline_status = NightlineStatus.get_nightline_status(nightline.id, nightline.status.id)
+    StorySlide.remove_story_slide(nightline_status)
+
+    assert isinstance(StorySlide.update_story_slide(sample_jpg, nightline_status), StorySlide)
+
+    mock_logger.info.assert_called_once_with(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' updated successfully")

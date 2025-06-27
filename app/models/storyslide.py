@@ -107,7 +107,7 @@ class StorySlide(db.Model):  # type: ignore
     @classmethod
     def remove_story_slide(cls, nightline_status: "NightlineStatus") -> bool:
         """Remove a story slide for a nightlines status"""
-        file_path = nightline_status.story_slide.path
+        file_path = nightline_status.instagram_story_slide.path
         if not remove_file(file_path):
             return False
 
