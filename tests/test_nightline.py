@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.apikey import ApiKey

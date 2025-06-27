@@ -15,7 +15,7 @@ from app.filehandler import (
 )
 from app.logger import logger
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from app.models.nightlinestatus import NightlineStatus
 
 

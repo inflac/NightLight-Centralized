@@ -7,7 +7,7 @@ from app.models.storyslide import StorySlide
 
 from ..db import db
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from app.models.nightline import Nightline
     from app.models.status import Status
 
@@ -49,7 +49,7 @@ class NightlineStatus(db.Model):  # type: ignore
             return True
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Error creating NightlineStatus entries for status '{status.name}': {str(e)}")
+            logger.error(f"Error creating NightlineStatus entries for status '{status.name}': {e}")
             return False
 
     @classmethod
@@ -74,7 +74,7 @@ class NightlineStatus(db.Model):  # type: ignore
             return True
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Error creating NightlineStatus entries for nightline '{nightline.name}': {str(e)}")
+            logger.error(f"Error creating NightlineStatus entries for nightline '{nightline.name}': {e}")
             return False
 
     @classmethod
@@ -83,20 +83,19 @@ class NightlineStatus(db.Model):  # type: ignore
         logger.debug(f"Deleting NightlineStatus entries for status: '{status.name}'")
 
         try:
-            # Delete all NightlineStatus entries that reference the given
-            # status
+            # Delete all NightlineStatus entries that reference the given status
             rows_deleted = NightlineStatus.query.filter_by(status_id=status.id).delete()
 
             if rows_deleted > 0:
                 db.session.commit()
                 logger.info(f"Successfully deleted '{rows_deleted}' NightlineStatus entries for status: '{status.name}'")
                 return True
-            else:
+            else:  # This would be an out of sync state as we have a status object but no nightline status objects for it
                 logger.warning(f"No NightlineStatus entries found for status: '{status.name}'")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Error deleting NightlineStatus entries for status: '{status.name}': {str(e)}")
+            logger.error(f"Error deleting NightlineStatus entries for status: '{status.name}': {e}")
             return False
 
     @classmethod
@@ -105,20 +104,19 @@ class NightlineStatus(db.Model):  # type: ignore
         logger.debug(f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'")
 
         try:
-            # Delete all NightlineStatus entries that reference the given
-            # nightline_id
+            # Delete all NightlineStatus entries that reference the given nightline_id
             rows_deleted = NightlineStatus.query.filter_by(nightline_id=nightline.id).delete()
 
             if rows_deleted > 0:
                 db.session.commit()
                 logger.info(f"Successfully deleted '{rows_deleted}' NightlineStatus entries for nightline: '{nightline.name}'")
                 return True
-            else:
+            else:  # This would be an out of sync state as we have a status object but no nightline status objects for it
                 logger.warning(f"No NightlineStatus entries found for nightline: '{nightline.name}'")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Error deleting NightlineStatus entries for nightline: '{nightline.name}': {str(e)}")
+            logger.error(f"Error deleting NightlineStatus entries for nightline: '{nightline.name}': {e}")
             return False
 
     @classmethod
@@ -134,10 +132,10 @@ class NightlineStatus(db.Model):  # type: ignore
                 db.session.commit()
                 logger.info(f"Updated instagram_story for nightline: '{nightline.name}', status: '{status.name}' to '{instagram_story}'")
                 return True
-            else:
+            else:  # This would be an out of sync state as we have a status object but no nightline status objects for it
                 logger.warning(f"No NightlineStatus entry found for nightline: '{nightline.name}' and status: {status.name}")
                 return False
         except SQLAlchemyError as e:
             db.session.rollback()
-            logger.error(f"Error updating instagram_story for nightline: '{nightline.name}', status: '{status.name}': {str(e)}")
+            logger.error(f"Error updating instagram_story for nightline: '{nightline.name}', status: '{status.name}': {e}")
             return False
