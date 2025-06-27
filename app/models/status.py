@@ -40,7 +40,7 @@ class Status(db.Model):  # type: ignore
         logger.debug(f"Adding new status: {name}")
 
         if cls.query.filter_by(name=name).first():
-            logger.error(f"Status '{name}' already exists")
+            logger.warning(f"Status '{name}' already exists")
             return None
 
         try:
@@ -61,7 +61,7 @@ class Status(db.Model):  # type: ignore
             return new_status
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error adding status '{name}': {str(e)}")
+            logger.error(f"Error adding status '{name}': {e}")
             return None
 
     @classmethod
@@ -71,7 +71,7 @@ class Status(db.Model):  # type: ignore
 
         status_to_remove = Status.get_status(name)
         if not status_to_remove:
-            logger.info(f"Status '{name}' not found, nothing to remove")
+            logger.warning(f"Status '{name}' not found, nothing to remove")
             return None
 
         NightlineStatus.delete_status_for_all_nightlines(status_to_remove)
@@ -84,7 +84,8 @@ class Status(db.Model):  # type: ignore
             return status_to_remove
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error removing status '{name}': {str(e)}")
+            NightlineStatus.add_new_status_for_all_nightlines(status_to_remove)  # Re-add status to nls to prevent an out of sync state
+            logger.error(f"Error removing status '{name}': {e}")
             return None
 
     @classmethod
@@ -98,8 +99,8 @@ class Status(db.Model):  # type: ignore
             logger.info(f"Listed {len(statuses)} statuses")
             return statuses
         except Exception as e:
-            logger.error(f"Error while fetching the statuses: {str(e)}")
-            raise RuntimeError(f"Error while fetching the statuses: {str(e)}")
+            logger.error(f"Error while fetching the statuses: {e}")
+            return []
 
     def __repr__(self) -> str:
         return f"Status('{self.name}')"

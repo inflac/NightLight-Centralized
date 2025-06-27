@@ -131,6 +131,8 @@ def test_list_nightlines_no_filters(mock_logger):
     mock_logger.debug.assert_any_call("Listing all nightlines with filters")
     mock_logger.info.assert_any_call(f"Listed 2 nightlines")
 
+    Nightline.remove_nightline("Testline")
+
 
 @patch("app.models.nightline.logger")
 def test_list_nightlines_canceled_filter(mock_logger):
@@ -663,6 +665,8 @@ def test_delete_instagram_story_no_instagram_acc_added(mock_logger):
     assert nightline.delete_instagram_story() is False
 
     mock_logger.warning.assert_called_once_with(f"No Instagram account configured for nightline '{nightline.name}'.")
+
+    Nightline.remove_nightline("templine")
 
 
 # -------------------------

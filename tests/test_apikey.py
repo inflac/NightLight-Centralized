@@ -1,8 +1,5 @@
 import re
 
-import pytest
-
-from app.db import db
 from app.models.apikey import ApiKey
 
 
@@ -44,8 +41,6 @@ def test_get_api_key_existing(app):
 
     # Setup Nightline und ApiKey
     nightline = Nightline.add_nightline(name="Testline")
-    db.session.add(nightline)
-    db.session.commit()
 
     key = nightline.get_api_key()
     assert key is not None
