@@ -28,7 +28,7 @@ class StorySlide(db.Model):  # type: ignore
     nightline_status = db.relationship("NightlineStatus", back_populates="instagram_story_slide")
 
     @classmethod
-    def __save_story_slide_file(cls, file: FileStorage, nightline_status: "NightlineStatus", overwrite: bool = False) -> Optional[Path]:
+    def _save_story_slide_file(cls, file: FileStorage, nightline_status: "NightlineStatus", overwrite: bool = False) -> Optional[Path]:
         """Handles saving the file and checks if the file already exists."""
 
         # Validate file type
@@ -52,7 +52,7 @@ class StorySlide(db.Model):  # type: ignore
                 logger.debug(f"Replacing the already existing story slide: '{existing_file_path}' for status: '{nightline_status.status.name}'")
                 remove_file(existing_file_path)
             else:
-                logger.info(f"Found an existing story slide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}'")
+                logger.warning(f"Found an existing story slide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}'")
                 return None
 
         # Save the file to the storage path
@@ -66,6 +66,7 @@ class StorySlide(db.Model):  # type: ignore
     def get_story_slide_by_nightline_status(cls, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
         """Fetch a story slide by a nightline status"""
         logger.debug(f"Fetching story slide for nightline status with ID: '{nightline_status.id}'")
+
         story_slide = cast(Optional["StorySlide"], cls.query.filter_by(nightline_status_id=nightline_status.id).first())
         if story_slide:
             logger.debug(f"Found story slide for status '{nightline_status.status.name}' of nightline '{nightline_status.nightline.name}'")
@@ -77,7 +78,7 @@ class StorySlide(db.Model):  # type: ignore
     def update_story_slide(cls, file: FileStorage, nightline_status: "NightlineStatus") -> Optional["StorySlide"]:
         """Create a story slide object, referencing the file and filepath"""
         # Save the file and get the file path
-        file_path = cls.__save_story_slide_file(file, nightline_status, overwrite=True)
+        file_path = cls._save_story_slide_file(file, nightline_status, overwrite=True)
         if not file_path:
             return None
 
@@ -87,7 +88,7 @@ class StorySlide(db.Model):  # type: ignore
             if not story_slide:
                 story_slide = cls(
                     filename=os.path.basename(file_path),
-                    path=file_path,
+                    path=str(file_path),
                     nightline_status_id=nightline_status.id,
                 )
                 db.session.add(story_slide)
