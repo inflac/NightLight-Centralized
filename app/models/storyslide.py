@@ -94,7 +94,7 @@ class StorySlide(db.Model):  # type: ignore
                 db.session.add(story_slide)
             else:
                 story_slide.filename = os.path.basename(file_path)
-                story_slide.path = file_path
+                story_slide.path = str(file_path)
             db.session.commit()
 
             logger.info(f"StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' updated successfully")
@@ -107,16 +107,25 @@ class StorySlide(db.Model):  # type: ignore
     @classmethod
     def remove_story_slide(cls, nightline_status: "NightlineStatus") -> bool:
         """Remove a story slide for a nightlines status"""
-        file_path = nightline_status.instagram_story_slide.path
-        if not remove_file(file_path):
+        status_name = nightline_status.status.name
+        nightline_name = nightline_status.nightline.name
+
+        if not nightline_status.instagram_story_slide:
+            logger.warning(f"No story slide found for status: '{status_name}' of nightline: '{nightline_name}'")
+            return False
+        
+        slide_path = nightline_status.instagram_story_slide.path
+
+        if not remove_file(slide_path):
+            logger.warning(f"Failed to remove file at path: '{slide_path}' for status: '{status_name}' of nightline: '{nightline_name}'")
             return False
 
         try:
-            db.session.delete(nightline_status.story_slide)
+            db.session.delete(nightline_status.instagram_story_slide)
             db.session.commit()
-
-            logger.info("for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}' removed successfully")
+            logger.info(f"StorySlide for status: '{status_name}' of nightline: '{nightline_name}' removed successfully")
             return True
         except Exception as e:
-            logger.error(f"Error removing StorySlide for status: '{nightline_status.status.name}' of nightline: '{nightline_status.nightline.name}': {e}")
+            db.session.rollback()
+            logger.error(f"Error removing StorySlide from DB for status: '{status_name}' of nightline: '{nightline_name}': {e}")
             return False
