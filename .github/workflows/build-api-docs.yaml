@@ -28,7 +28,7 @@ jobs:
       # Wait until the API is ready by polling swagger.json endpoint (max 30 seconds)
       - name: Wait for API to be ready
         run: |
-          for i in {1..30}; do
+          for i in {1..10}; do
             if docker exec nightlight-centralized-api curl -s http://localhost:5000/swagger.json > /dev/null; then
               echo "API is ready!"
               break
@@ -54,11 +54,11 @@ jobs:
 
       # Install redoc-cli globally
       - name: Install redoc-cli
-        run: npm install -g redoc-cli
+        run: npm install -g @redocly/cli
 
       # Generate static HTML API docs from swagger.json
       - name: Build API docs HTML
-        run: redoc-cli bundle swagger.json --output api-docs.html
+        run: npx redocly build-docs swagger.json --output api-docs.html
 
       # Stop and remove the Docker container
       - name: Stop Docker container
