@@ -1,4 +1,4 @@
-name: Build and Publish API Docs
+name: API Docs
 on:
   push:
     branches:

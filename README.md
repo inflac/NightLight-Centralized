@@ -1,7 +1,8 @@
 # NightLight Centralized
 
-[![CI](https://github.com/inflac/NightLight-Centralized/actions/workflows/.github/workflows/python-ci.yaml/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/python-ci.yml)
+[![Lint and Test](https://github.com/inflac/NightLight-Centralized/actions/workflows/lint-and-test.yaml/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/lint-and-test.yaml)
 [![CodeQL](https://github.com/inflac/NightLight-Centralized/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/github-code-scanning/codeql)
+[![API Docs](https://github.com/inflac/NightLight-Centralized/actions/workflows/build-api-docs.yaml/badge.svg)](https://github.com/inflac/NightLight-Centralized/actions/workflows/build-api-docs.yaml)
 [![Python](https://img.shields.io/badge/python-3.12--3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
 
 # Todos
