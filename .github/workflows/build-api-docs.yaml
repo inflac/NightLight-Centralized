@@ -52,14 +52,20 @@ jobs:
         with:
           node-version: '18'
 
-      # Install redoc-cli globally
-      - name: Install redoc-cli
-        run: npm install -g @redocly/cli
+      # Install Swagger UI
+      - name: Install Swagger UI Dist
+        run: npm install swagger-ui-dist
 
-      # Generate static HTML API docs from swagger.json
-      - name: Build API docs HTML
-        run: npx redocly build-docs swagger.json --output api-docs.html
+      - name: Copy Swagger UI files
+        run: |
+          mkdir -p swagger-ui
+          cp -r node_modules/swagger-ui-dist/* swagger-ui/
+          cp swagger.json swagger-ui/swagger.json
 
+      - name: Patch index.html to use swagger.json
+        run: |
+          sed -i 's|url: "https://petstore.swagger.io/v2/swagger.json"|url: "swagger.json"|' swagger-ui/index.html
+            
       # Stop and remove the Docker container
       - name: Stop Docker container
         run: docker rm -f nightlight-centralized-api
@@ -69,4 +75,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-docs
-          path: api-docs.html
+          path: swagger-ui
