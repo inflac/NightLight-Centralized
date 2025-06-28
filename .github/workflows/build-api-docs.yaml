@@ -35,7 +35,7 @@ jobs:
           done
 
       - name: Show container logs
-      run: docker logs nightlight-centralized-api
+        run: docker logs nightlight-centralized-api
 
       # Download the Swagger JSON spec
       - name: Download Swagger JSON
