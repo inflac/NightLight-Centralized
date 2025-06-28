@@ -1,0 +1,60 @@
+name: Build and Publish API Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build the Docker image for your Flask API
+      - name: Build Docker image
+        run: docker build -t nightlight-centralized-api .
+
+      # Run the Docker container in detached mode and expose port 5000
+      - name: Start Docker container
+        run: docker run -d -p 5000:5000 --name nightlight-centralized-api nightlight-centralized-api
+
+      # Wait until the API is ready by polling swagger.json endpoint (max 30 seconds)
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:5000/swagger.json > /dev/null; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Waiting for API..."
+            sleep 1
+          done
+
+      # Download the Swagger JSON spec
+      - name: Download Swagger JSON
+        run: curl http://localhost:5000/swagger.json -o swagger.json
+
+      # Setup Node.js for redoc-cli
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Install redoc-cli globally
+      - name: Install redoc-cli
+        run: npm install -g redoc-cli
+
+      # Generate static HTML API docs from swagger.json
+      - name: Build API docs HTML
+        run: redoc-cli bundle swagger.json --output api-docs.html
+
+      # Stop and remove the Docker container
+      - name: Stop Docker container
+        run: docker rm -f nightlight-centralized-api
+
+      # Upload the generated API docs as a GitHub Actions artifact
+      - name: Upload API docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: api-docs.html
