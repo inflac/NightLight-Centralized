@@ -36,7 +36,7 @@ def test_create_app_raises_unknown_operational_error():
 def test_admin_routes_enabled():
     app = create_app(config_overrides)
     client = app.test_client()
-    assert client.get("/admin/status/all").status_code == 200
+    assert client.get("/admin/status/all").status_code == 401
 
 
 @patch("app.config.Config.ENABLE_ADMIN_ROUTES", False)

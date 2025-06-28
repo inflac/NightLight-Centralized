@@ -30,6 +30,9 @@ class Config:
     # Admin routes
     ENABLE_ADMIN_ROUTES = os.getenv("ENABLE_ADMIN_ROUTES", "false").lower() == "true"
 
+    # Admin Api Key
+    ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
+
     # Instagram encryption settings
     password = os.getenv("ENCRYPTION_PASSWORD")
     if not password:

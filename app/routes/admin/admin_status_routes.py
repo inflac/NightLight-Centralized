@@ -10,6 +10,7 @@ from app.routes.api_models import (
     status_model,
     success_model,
 )
+from app.routes.decorators import require_admin_key
 from app.validation import validate_request_body, validate_status_value
 
 admin_status_ns = Namespace("admin status", description="Admin routes for statuses - API key required")
@@ -23,6 +24,7 @@ ad_st_set_status_model = admin_status_ns.model("Set Status", set_status_model)
 
 @admin_status_ns.route("/")
 class StatusResource(Resource):  # type: ignore
+    @require_admin_key
     @admin_status_ns.expect(ad_st_status_model)  # type: ignore[misc]
     @admin_status_ns.response(200, "Success", ad_st_success_model)  # type: ignore[misc]
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)  # type: ignore[misc]
@@ -48,6 +50,7 @@ class StatusResource(Resource):  # type: ignore
         return response, 200
 
     # Route to remove a status
+    @require_admin_key
     @admin_status_ns.expect(ad_st_set_status_model)  # type: ignore[misc]
     @admin_status_ns.response(200, "Success", ad_st_success_model)  # type: ignore[misc]
     @admin_status_ns.response(400, "Bad Request", ad_st_error_model)  # type: ignore[misc]
@@ -70,6 +73,7 @@ class StatusResource(Resource):  # type: ignore
 # Route to list all statuses
 @admin_status_ns.route("/all")
 class StatusListResource(Resource):  # type: ignore
+    @require_admin_key
     @admin_status_ns.response(200, "Success", [ad_st_status_model])  # type: ignore[misc]
     @admin_status_ns.response(404, "Statuses Not Found", ad_st_error_model)  # type: ignore[misc]
     def get(self) -> Union[Tuple[List[Dict[str, Any]], int], Response]:

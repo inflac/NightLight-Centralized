@@ -25,9 +25,9 @@ def test_handle_404_error(app):
 
 def test_handle_runtime_error(app):
     with app.test_client() as client:
-        with patch("app.models.nightline.Nightline.get_nightline") as mock_get_nightline:
+        with patch("app.routes.public_routes.Nightline.get_nightline") as mock_get_nightline:
             mock_get_nightline.side_effect = RuntimeError("Random unhandled runtime error")
-            resp = client.patch("/nightline/test/status", json={"status": "open"})
+            resp = client.get("/public/test")
 
             assert resp.status_code == 500
             assert resp.json == {"message": "An error occurred while processing data"}
@@ -35,9 +35,9 @@ def test_handle_runtime_error(app):
 
 def test_handle_generic_error(app):
     with app.test_client() as client:
-        with patch("app.models.nightline.Nightline.get_nightline") as mock_get_nightline:
+        with patch("app.routes.public_routes.Nightline.get_nightline") as mock_get_nightline:
             mock_get_nightline.side_effect = Exception("Random unhandled server error")
-            resp = client.patch("/nightline/test/status", json={"status": "open"})
+            resp = client.get("/public/test")
 
             assert resp.status_code == 500
             assert resp.json == {"message": "An unexpected error occurred"}

@@ -113,7 +113,7 @@ class StorySlide(db.Model):  # type: ignore
         if not nightline_status.instagram_story_slide:
             logger.warning(f"No story slide found for status: '{status_name}' of nightline: '{nightline_name}'")
             return False
-        
+
         slide_path = nightline_status.instagram_story_slide.path
 
         if not remove_file(slide_path):

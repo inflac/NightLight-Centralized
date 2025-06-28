@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource, abort
 
 from app.models import Nightline, Status
 from app.routes.api_models import error_model, nightline_status_model
-from app.routes.decorators import sanitize_name
+from app.routes.decorators import sanitize_nightline_name
 from app.validation import validate_filters
 
 public_ns = Namespace("public", description="Public accessible routes")
@@ -16,18 +16,18 @@ pb_error_model = public_ns.model("Error", error_model)
 pb_nightline_status_model = public_ns.model("Nightline Status", nightline_status_model)
 
 
-@public_ns.route("/<string:name>")
+@public_ns.route("/<string:nightline_name>")
 class PublicNightlineStatusResource(Resource):  # type: ignore
-    @sanitize_name
+    @sanitize_nightline_name
     @public_ns.response(200, "Success", pb_nightline_status_model)  # type: ignore[misc]
     # Can be returend by sanitize_name
     @public_ns.response(400, "Bad Request", pb_error_model)  # type: ignore[misc]
     @public_ns.response(404, "Nightline Not Found", pb_error_model)  # type: ignore[misc]
-    def get(self, name: str) -> Union[Tuple[Dict[str, Any], int], Response]:
+    def get(self, nightline_name: str) -> Union[Tuple[Dict[str, Any], int], Response]:
         """Retrieve the status of a nightline"""
-        nightline = Nightline.get_nightline(name)
+        nightline = Nightline.get_nightline(nightline_name)
         if not nightline:
-            abort(404, message=f"Nightline '{name}' not found")
+            abort(404, message=f"Nightline '{nightline_name}' not found")
         nightline = cast(Nightline, nightline)  # Ensure mypi knows the type
 
         response = {
