@@ -88,12 +88,26 @@ def test_add_statuses_for_new_nightlines_successfull(mock_logger):
     mock_logger.debug.assert_called_once_with(f"Creating NightlineStatus entries for all statuses for nightline '{nightline.name}'")
     mock_logger.info.assert_called_once_with(f"NightlineStatus entries created successfully for nightline '{nightline.name}'")
 
-    Nightline.remove_nightline("nightlinestatus_line_2")
+    NightlineStatus.delete_statuses_for_nightline(nightline)
+    db.session.delete(nightline)
+    db.session.commit()
 
 
 # -------------------------
 # delete_status_for_all_nightlines
 # -------------------------
+@patch("app.models.nightlinestatus.logger")
+def test_delete_status_for_all_nightlines_no_nightlinestatuses_deleted(mock_logger):
+    new_status = Status(id=11, name="no_nightline_statuses_status", description_de="", description_en="", description_now_de="", description_now_en="")
+
+    Nightline.add_nightline("testline")
+
+    assert NightlineStatus.delete_status_for_all_nightlines(new_status) is False
+
+    mock_logger.debug.assert_any_call(f"Deleting NightlineStatus entries for status: '{new_status.name}'")
+    mock_logger.warning.assert_called_once_with(f"No NightlineStatus entries found for status: '{new_status.name}'")
+
+
 @patch("app.models.nightlinestatus.logger")
 @patch("app.models.nightlinestatus.db.session.commit")
 def test_delete_status_for_all_nightlines_database_error(mock_commit, mock_logger):
@@ -105,16 +119,6 @@ def test_delete_status_for_all_nightlines_database_error(mock_commit, mock_logge
 
     mock_logger.debug.assert_called_once_with(f"Deleting NightlineStatus entries for status: '{status.name}'")
     mock_logger.error.assert_called_once_with(f"Error deleting NightlineStatus entries for status: '{status.name}': Database error")
-
-
-@patch("app.models.nightlinestatus.logger")
-def test_delete_status_for_all_nightlines_no_nightlinestatuses_deleted(mock_logger):
-    new_status = Status(id=11, name="no_nightline_statuses_status", description_de="", description_en="", description_now_de="", description_now_en="")
-
-    assert NightlineStatus.delete_status_for_all_nightlines(new_status) is False
-
-    mock_logger.debug.assert_called_once_with(f"Deleting NightlineStatus entries for status: '{new_status.name}'")
-    mock_logger.warning.assert_called_once_with(f"No NightlineStatus entries found for status: '{new_status.name}'")
 
 
 @patch("app.models.nightlinestatus.logger")
@@ -130,20 +134,12 @@ def test_delete_status_for_all_nightlines_successfull(mock_logger):
     db.session.delete(status)
     db.session.commit()
 
+    Nightline.remove_nightline("testline")
+
 
 # -------------------------
 # delete_statuses_for_nightline
 # -------------------------
-@patch("app.models.nightlinestatus.logger")
-def test_delete_statuses_for_nightline_no_nightlinestatuses_deleted(mock_logger):
-    nightline = Nightline(name="no_nightline_statuses_nightline", status_id=Status.get_status("default").id, now=False, instagram_media_id="")
-
-    assert NightlineStatus.delete_statuses_for_nightline(nightline) is False
-
-    mock_logger.debug(f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'")
-    mock_logger.warning(f"No NightlineStatus entries found for nightline: '{nightline.name}'")
-
-
 @patch("app.models.nightlinestatus.logger")
 def test_delete_statuses_for_nightline_successfull(mock_logger):
     nightline = Nightline.add_nightline("nightlinestatus_line_3")
@@ -169,7 +165,17 @@ def test_delete_statuses_for_nightline_database_error(mock_commit, mock_logger):
     mock_logger.debug(f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'")
     mock_logger.error(f"Error deleting NightlineStatus entries for nightline: '{nightline.name}': Database error")
 
-    Nightline.remove_nightline(nightline.name)
+
+@patch("app.models.nightlinestatus.logger")
+def test_delete_statuses_for_nightline_no_nightlinestatuses_deleted(mock_logger):
+    nightline = Nightline(name="no_nightline_statuses_nightline", status_id=Status.get_status("default").id, now=False, instagram_media_id="")
+
+    assert NightlineStatus.delete_statuses_for_nightline(nightline) is False
+
+    mock_logger.debug(f"Deleting all NightlineStatus entries for nightline: '{nightline.name}'")
+    mock_logger.warning(f"No NightlineStatus entries found for nightline: '{nightline.name}'")
+
+    Nightline.remove_nightline("nightlinestatus_line_3")
 
 
 # -------------------------

@@ -265,3 +265,5 @@ def test_remove_story_slide_no_story_slide_found(mock_logger):
     assert StorySlide.remove_story_slide(nightline_status) is False
 
     mock_logger.warning.assert_called_once_with(f"No story slide found for status: '{nightline.status.name}' of nightline: '{nightline.name}'")
+
+    Nightline.remove_nightline(nightline.name)
