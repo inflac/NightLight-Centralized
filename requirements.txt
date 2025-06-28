@@ -14,3 +14,4 @@ black
 pip-audit
 bandit
 pytest-cov
+gunicorn
