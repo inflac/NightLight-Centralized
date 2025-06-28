@@ -21,7 +21,7 @@ from app.validation import (
     validate_status_value,
 )
 
-nightline_ns = Namespace("nightline", description="Routes for nightlines - API key required")
+nightline_ns = Namespace("nightline", description="Routes for nightlines - API key required", security="apikey")
 
 # Define the request model for the update status and now boolean
 nl_error_model = nightline_ns.model("Error", error_model)

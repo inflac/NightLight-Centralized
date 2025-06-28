@@ -14,7 +14,7 @@ from app.routes.decorators import require_admin_key, sanitize_nightline_name
 if TYPE_CHECKING:
     from app.models.apikey import ApiKey
 
-admin_nightline_ns = Namespace("admin nightline", description="Admin routes for nightlines - API key required")
+admin_nightline_ns = Namespace("admin nightline", description="Admin routes for nightlines - API key required", security="apikey")
 
 ad_nl_error_model = admin_nightline_ns.model("Error", error_model)
 ad_nl_success_model = admin_nightline_ns.model("Success", success_model)

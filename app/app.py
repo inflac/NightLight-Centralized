@@ -8,6 +8,14 @@ from app.config import Config
 from app.db import db
 from app.routes import *
 
+authorizations = {
+    "apikey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+    }
+}
+
 
 def create_app(config_overrides: Optional[dict[str, str]] = None) -> Flask:
     app = Flask(__name__)
@@ -46,6 +54,7 @@ def create_app(config_overrides: Optional[dict[str, str]] = None) -> Flask:
         version="1.0",
         description="API for managing the availability status of Nightlines",
         doc=Config.API_DOC_PATH,
+        authorizations=authorizations,
     )
 
     # Register public routes
