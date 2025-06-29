@@ -31,10 +31,10 @@ def require_admin_key(f: Callable[..., R]) -> Callable[..., Union[R, tuple[dict[
     def wrapper(*args: Any, **kwargs: Any) -> Union[R, tuple[dict[str, str], int]]:
         api_key = request.headers.get("Authorization")
         if not api_key:
-            return {"error": "Missing Authorization header"}, 401
+            return {"message": "Missing Authorization header"}, 401
 
         if api_key != Config.ADMIN_API_KEY:
-            return {"error": "Admin API key required"}, 403
+            return {"message": "Admin API key required"}, 403
 
         return f(*args, **kwargs)
 
@@ -46,19 +46,19 @@ def require_api_key(f: Callable[..., R]) -> Callable[..., Union[R, tuple[dict[st
     def wrapper(*args: Any, **kwargs: Any) -> Union[R, tuple[dict[str, str], int]]:
         api_key = request.headers.get("Authorization")
         if not api_key:
-            return {"error": "Missing Authorization header"}, 401
+            return {"message": "Missing Authorization header"}, 401
 
         if api_key == Config.ADMIN_API_KEY:
             return f(*args, **kwargs)
 
         nightline_name = kwargs.get("nightline_name")
         if not nightline_name:
-            return {"error": "Nightline name not found in request"}, 400
+            return {"message": "Nightline name not found in request"}, 400
 
         nightline = Nightline.get_nightline(nightline_name)
         if nightline and api_key == nightline.get_api_key():
             return f(*args, **kwargs)
 
-        return {"error": "Invalid API key"}, 403
+        return {"message": "Invalid API key"}, 403
 
     return wrapper
