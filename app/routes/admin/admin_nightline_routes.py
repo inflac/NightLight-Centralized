@@ -11,7 +11,7 @@ from app.routes.api_models import (
 )
 from app.routes.decorators import require_admin_key, sanitize_nightline_name
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from app.models.apikey import ApiKey
 
 admin_nightline_ns = Namespace("admin nightline", description="Admin routes for nightlines - API key required", security="apikey")

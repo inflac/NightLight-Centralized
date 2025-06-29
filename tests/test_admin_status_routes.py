@@ -36,10 +36,7 @@ def sample_status_payload():
 # -------------------------
 # admin/status/ [post]
 # -------------------------
-@patch("app.routes.decorators.require_admin_key")
-def test_add_status_success(mock_require_admin_key, client, headers_with_valid_token, sample_status_payload):
-    mock_require_admin_key.return_value = True
-
+def test_add_status_success(client, headers_with_valid_token, sample_status_payload):
     response = client.post("/admin/status/", json=sample_status_payload, headers=headers_with_valid_token)
     assert response.status_code == 200
     data = response.get_json()

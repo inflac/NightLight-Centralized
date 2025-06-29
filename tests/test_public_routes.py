@@ -52,7 +52,6 @@ def test_get_all_nightlines(client):
     resp = client.get("/public/all")
     assert resp.status_code == 200
     data = resp.get_json()
-    print(data)
     assert len(data) == 3
 
 
