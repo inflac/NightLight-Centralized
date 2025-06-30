@@ -129,11 +129,13 @@ class NightlineStatusConfigResource(Resource):  # type: ignore
 
         status = Status.get_status(status_value)
         if not status:
-            abort(400, message=f"Status '{status_value}' not found")
+            abort(404, message=f"Status '{status_value}' not found")
         status = cast(Status, status)
 
+        nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
+
         # Validate a story slide is set if instagram_story is True
-        if instagram_story and not NightlineStatus.get_nightline_status(nightline.id, status.name):
+        if instagram_story and not nightline_status.instagram_story_slide:
             abort(400, f"No story slide set for status '{status.name}' of nightline '{nightline.name}'")
 
         if not NightlineStatus.update_instagram_story(nightline, status, instagram_story):
@@ -291,30 +293,32 @@ class NightlineStoryResource(Resource):  # type: ignore
             abort(404, f"Nightline '{nightline_name}' not found")
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
-        nightline_status = next((nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value), None)  # type: ignore[attr-defined]
+        status = Status.get_status(status_value)
+        nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
         if not nightline_status:
             abort(404, f"Status '{status_value}' not found")
         nightline_status = cast(NightlineStatus, nightline_status)
 
         if not StorySlide.update_story_slide(image_file, nightline_status):
-            abort(500, f"Uploading a story slide for status {status_value} failed")
+            abort(500, f"Uploading a story slide for status '{status_value}' failed")
 
-        response = {"message": f"Story for status {status_value} added successfully"}
+        response = {"message": f"Story for status '{status_value}' added successfully"}
         return response, 201
 
     @sanitize_nightline_name
     @require_api_key
+    @nightline_ns.expect(nl_set_status_model)  # type: ignore[misc]
     @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
     @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
     @nightline_ns.response(500, "Story Error", nl_error_model)  # type: ignore[misc]
     def delete(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
         """Remove a story slide for the given nightline and status"""
-        # Parse the request body
-        args = upload_parser.parse_args()
-        validate_request_body(args, ["status"])
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
+        validate_request_body(data, ["status"])
 
-        status_value = args["status"]
+        status_value = data["status"]  # type: ignore[index]
         validate_status_value(status_value)  # Validate status name format
 
         nightline = Nightline.get_nightline(nightline_name)
@@ -322,13 +326,14 @@ class NightlineStoryResource(Resource):  # type: ignore
             abort(404, f"Nightline '{nightline_name}' not found")
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
-        nightline_status = next((nightline_status for nightline_status in nightline.nightline_statuses if nightline_status.status.name == status_value), None)  # type: ignore[attr-defined]
+        status = Status.get_status(status_value)
+        nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
         if not nightline_status:
             abort(404, f"Status '{status_value}' not found")
         nightline_status = cast(NightlineStatus, nightline_status)
 
         if not StorySlide.remove_story_slide(nightline_status):
-            abort(500, f"Deleting a story slide for status {status_value} failed")
+            abort(500, f"Deleting a story slide for status '{status_value}' failed")
 
-        response = {"message": f"Story for status {status_value} removed successfully"}
+        response = {"message": f"Story for status '{status_value}' removed successfully"}
         return response, 200
