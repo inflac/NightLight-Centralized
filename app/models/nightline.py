@@ -329,13 +329,13 @@ class Nightline(db.Model):  # type: ignore
             return False
 
     def delete_instagram_story(self) -> bool:
-        if not self.instagram_account:
-            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
-            return False
-
         if not self.instagram_media_id:
             logger.debug("No story to delete because no media id is set")
             return True
+
+        if not self.instagram_account:
+            logger.warning(f"No Instagram account configured for nightline '{self.name}'.")
+            return False
 
         username = self.instagram_account.username
         password = self.instagram_account.get_password()

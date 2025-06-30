@@ -1,7 +1,3 @@
-from unittest.mock import patch
-
-import pytest
-
 from app.models.nightline import Nightline
 
 
@@ -26,12 +22,10 @@ def test_get_nightline_status_success(client):
 
     Nightline.remove_nightline("pubroutetest")
 
-
 def test_get_nightline_status_not_found(client):
     response = client.get("/public/nonexistent")
     assert response.status_code == 404
     assert "Nightline 'nonexistent' not found" in response.get_json()["message"]
-
 
 def test_get_nightline_status_invalid_name(client):
     response = client.get("/public/..")

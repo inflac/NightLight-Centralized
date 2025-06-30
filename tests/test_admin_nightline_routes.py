@@ -1,9 +1,7 @@
 from unittest.mock import patch
 
-from flask_restx import abort
 import pytest
 from app.models.nightline import Nightline
-from app.models.status import Status
 from app.config import Config
 
 

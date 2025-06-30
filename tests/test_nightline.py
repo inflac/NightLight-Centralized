@@ -661,6 +661,7 @@ def test_delete_instagram_story_missing_instagram_media_id(mock_logger):
 def test_delete_instagram_story_no_instagram_acc_added(mock_logger):
     nightline = Nightline.get_nightline("templine")
     nightline.delete_instagram_account()
+    nightline.set_instagram_media_id("exampleID")
 
     assert nightline.delete_instagram_story() is False
 

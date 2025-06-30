@@ -68,7 +68,7 @@ class NightlineStatusResource(Resource):  # type: ignore
             if not nightline.post_instagram_story(status_value):
                 abort(500, f"Status updated but uploading an instagram story post failed")
 
-        response = {"message": f"Status successfully updated to: {status_value}"}
+        response = {"message": f"Status successfully updated to: '{status_value}'"}
         return response, 200
 
     @sanitize_nightline_name

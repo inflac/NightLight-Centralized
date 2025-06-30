@@ -15,7 +15,7 @@ def sanitize_nightline_name(f: Callable[..., R]) -> Callable[..., R]:
     def decorated_function(self: Any, nightline_name: str, *args: Any, **kwargs: Any) -> R:
         sanitized_name = nightline_name.strip().lower()
 
-        if not sanitized_name.isalnum() or len(sanitized_name) > 15:
+        if not sanitized_name.isalnum() or len(sanitized_name) > 50:
             logger.debug(f"Route was called with an invalid name: '{nightline_name}'")
             return {"message": "Invalid name format"}, 400  # type: ignore
 
@@ -48,15 +48,22 @@ def require_api_key(f: Callable[..., R]) -> Callable[..., Union[R, tuple[dict[st
         if not api_key:
             return {"message": "Missing Authorization header"}, 401
 
+        # Allow admin key to bypass nightline check
         if api_key == Config.ADMIN_API_KEY:
             return f(*args, **kwargs)
 
+        # Attempt to extract nightline_name from keyword args
         nightline_name = kwargs.get("nightline_name")
+
+        # Try fallback: look in positional args if not passed via kwargs
+        if not nightline_name and len(args) >= 2:
+            nightline_name = args[1]  # assuming method(self, nightline_name, ...)
+
         if not nightline_name:
             return {"message": "Nightline name not found in request"}, 400
 
         nightline = Nightline.get_nightline(nightline_name)
-        if nightline and api_key == nightline.get_api_key():
+        if nightline and api_key == nightline.get_api_key().key:
             return f(*args, **kwargs)
 
         return {"message": "Invalid API key"}, 403
