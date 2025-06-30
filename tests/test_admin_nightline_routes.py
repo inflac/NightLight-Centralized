@@ -66,6 +66,22 @@ def test_add_nightline_existing(client, headers_with_valid_token):
     data = response.get_json()
 
     assert "message" in data
+    assert "Nightline 'testline' already exists" in data["message"]
+
+    Nightline.remove_nightline("testline")
+
+
+@patch("app.routes.admin.admin_nightline_routes.Nightline.add_nightline")
+def test_add_nightline_error_on_add_nightline(mock_add_nightline, client, headers_with_valid_token):
+    mock_add_nightline.return_value = False
+
+    response = client.post("/admin/nightline/testline", headers=headers_with_valid_token)
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert "message" in data
     assert "Nightline 'testline' could not be added due to invalid data or duplication" in data["message"]
 
     Nightline.remove_nightline("testline")
