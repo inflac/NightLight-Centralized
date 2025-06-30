@@ -1,19 +1,18 @@
 #!/bin/bash
-set -e
 
-# Load environment variables from .env
+# Load environment variables
 export $(grep -v '^#' /app/.env | xargs)
 
-# Fetch all nightlines
+# Get all nightline names from public API
 response=$(curl -s http://localhost:5000/public/all)
 
-# Extract nightline_name using jq
-nightlines=$(echo "$response" | jq -r '.[].nightline_name')
+# Extrahiere alle "nightline_name"-Werte
+nightlines=$(echo "$response" | grep -o '"nightline_name":[^,}]*' | cut -d':' -f2 | tr -d ' "')
 
-# Loop through each nightline and reset its status
+# Schleife über alle nightlines und sende DELETE-Request
 for nl in $nightlines; do
-  echo "Resetting status for: $nl"
-  curl -s -X DELETE http://localhost:5000/nightline/${nl}/status \
-       -H "Authorization: ${ADMIN_API_KEY}" \
-       -w "\nStatus reset response for $nl: %{http_code}\n"
+    echo "Resetting status for: $nl"
+    curl -s -X DELETE "http://localhost:5000/nightline/${nl}/status" \
+         -H "Authorization: ${ADMIN_API_KEY}"
+    echo -e "\n---"
 done

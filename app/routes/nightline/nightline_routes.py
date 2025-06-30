@@ -37,6 +37,7 @@ upload_parser.add_argument("status", location="form", type=str, required=True, h
 
 
 @nightline_ns.route("/<string:nightline_name>/status")
+@nightline_ns.doc(security="apikey")
 class NightlineStatusResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key
@@ -100,6 +101,7 @@ class NightlineStatusResource(Resource):  # type: ignore
 
 
 @nightline_ns.route("/<string:nightline_name>/status/config")
+@nightline_ns.doc(security="apikey")
 class NightlineStatusConfigResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key
@@ -149,6 +151,7 @@ class NightlineStatusConfigResource(Resource):  # type: ignore
 
 
 @nightline_ns.route("/<string:nightline_name>/now")
+@nightline_ns.doc(security="apikey")
 class NightlineNowResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key
@@ -179,6 +182,7 @@ class NightlineNowResource(Resource):  # type: ignore
 
 
 @nightline_ns.route("/<string:nightline_name>/instagram")
+@nightline_ns.doc(security="apikey")
 class NightlineInstagramResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key
@@ -270,6 +274,7 @@ class NightlineInstagramResource(Resource):  # type: ignore
 
 
 @nightline_ns.route("/<string:nightline_name>/story")
+@nightline_ns.doc(security="apikey")
 class NightlineStoryResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key

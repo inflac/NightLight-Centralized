@@ -23,6 +23,7 @@ ad_st_set_status_model = admin_status_ns.model("Set Status", set_status_model)
 
 
 @admin_status_ns.route("/")
+@admin_status_ns.doc(security="apikey")
 class StatusResource(Resource):  # type: ignore
     @require_admin_key
     @admin_status_ns.expect(ad_st_status_model)  # type: ignore[misc]
@@ -72,6 +73,7 @@ class StatusResource(Resource):  # type: ignore
 
 # Route to list all statuses
 @admin_status_ns.route("/all")
+@admin_status_ns.doc(security="apikey")
 class StatusListResource(Resource):  # type: ignore
     @require_admin_key
     @admin_status_ns.response(200, "Success", [ad_st_status_model])  # type: ignore[misc]

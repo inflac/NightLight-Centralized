@@ -23,6 +23,7 @@ ad_nl_admin_nightline_model = admin_nightline_ns.model("Admin Nightline", admin_
 
 
 @admin_nightline_ns.route("/<string:nightline_name>")
+@admin_nightline_ns.doc(security="apikey")
 class NightlineResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_admin_key
@@ -51,6 +52,10 @@ class NightlineResource(Resource):  # type: ignore
     @admin_nightline_ns.response(400, "Bad Request", ad_nl_error_model)  # type: ignore[misc]
     def post(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
         """Add a new nightline with the default status"""
+
+        if Nightline.get_nightline(nightline_name):
+            abort(400, message=f"Nightline '{nightline_name}' already exists")
+
         nightline = Nightline.add_nightline(nightline_name)
         if not nightline:
             abort(
@@ -76,6 +81,7 @@ class NightlineResource(Resource):  # type: ignore
 
 
 @admin_nightline_ns.route("/key/<string:nightline_name>")
+@admin_nightline_ns.doc(security="apikey")
 class ApiKeyResource(Resource):  # type: ignore
     @sanitize_nightline_name  # Can return 400 error
     @require_admin_key
