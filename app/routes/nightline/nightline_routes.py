@@ -133,6 +133,9 @@ class NightlineStatusConfigResource(Resource):  # type: ignore
         status = cast(Status, status)
 
         nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
+        if not nightline_status:
+            abort(500, f"Status '{status.name}' for nightline '{nightline.name}' not found")
+        nightline_status = cast(NightlineStatus, nightline_status)
 
         # Validate a story slide is set if instagram_story is True
         if instagram_story and not nightline_status.instagram_story_slide:
@@ -294,6 +297,10 @@ class NightlineStoryResource(Resource):  # type: ignore
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         status = Status.get_status(status_value)
+        if not status:
+            abort(404, f"Status '{status_value}' not found")
+        status = cast(Status, status)
+
         nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
         if not nightline_status:
             abort(404, f"Status '{status_value}' not found")
@@ -327,6 +334,10 @@ class NightlineStoryResource(Resource):  # type: ignore
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         status = Status.get_status(status_value)
+        if not status:
+            abort(404, f"Status '{status_value}' not found")
+        status = cast(Status, status)
+
         nightline_status = NightlineStatus.get_nightline_status(nightline.id, status.id)
         if not nightline_status:
             abort(404, f"Status '{status_value}' not found")

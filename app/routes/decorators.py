@@ -1,11 +1,11 @@
 from functools import wraps
-from typing import Any, Callable, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union, cast
 
 from flask import request
 
 from app.config import Config
 from app.logger import logger
-from app.models import Nightline
+from app.models import ApiKey, Nightline
 
 R = TypeVar("R")
 
@@ -63,7 +63,14 @@ def require_api_key(f: Callable[..., R]) -> Callable[..., Union[R, tuple[dict[st
             return {"message": "Nightline name not found in request"}, 400
 
         nightline = Nightline.get_nightline(nightline_name)
-        if nightline and api_key == nightline.get_api_key().key:
+        if not nightline:
+            return {"message": f"Nightline '{nightline_name}' not found"}, 404
+
+        nl_api_key = nightline.get_api_key()
+        if not nl_api_key:
+            return {"message": "No Api Key found for requested nightline"}, 500
+
+        if api_key == nl_api_key.key:
             return f(*args, **kwargs)
 
         return {"message": "Invalid API key"}, 403
