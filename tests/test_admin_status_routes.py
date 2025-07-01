@@ -31,15 +31,19 @@ def sample_status_payload():
     }
 
 
+def assert_message(response, expected_substring, status_code):
+    assert response.status_code == status_code
+    data = response.get_json()
+    assert "message" in data
+    assert expected_substring in data["message"]
+
+
 # -------------------------
 # admin/status/ [post]
 # -------------------------
 def test_add_status_success(client, headers_with_valid_token, sample_status_payload):
     response = client.post("/admin/status/", json=sample_status_payload, headers=headers_with_valid_token)
-    assert response.status_code == 200
-    data = response.get_json()
-    assert "message" in data
-    assert "test-status" in data["message"]
+    assert_message(response, "test-status", 200)
 
     # Cleanup
     status = Status.query.filter_by(name="test-status").first()
@@ -50,14 +54,12 @@ def test_add_status_success(client, headers_with_valid_token, sample_status_payl
 
 def test_add_status_missing_token(client, sample_status_payload):
     response = client.post("/admin/status/", json=sample_status_payload)
-    assert response.status_code == 401
-    assert "message" in response.get_json()
+    assert_message(response, "Missing Authorization header", 401)
 
 
 def test_add_status_invalid_token(client, headers_with_invalid_token, sample_status_payload):
     response = client.post("/admin/status/", json=sample_status_payload, headers=headers_with_invalid_token)
-    assert response.status_code == 403
-    assert "message" in response.get_json()
+    assert_message(response, "Admin API key required", 403)
 
 
 def test_add_status_missing_fields(client, headers_with_valid_token):
@@ -79,9 +81,7 @@ def test_add_duplicate_status(client, headers_with_valid_token, sample_status_pa
 
     # Try to add it again
     response = client.post("/admin/status/", json=sample_status_payload, headers=headers_with_valid_token)
-    assert response.status_code == 400
-    data = response.get_json()
-    assert f"Status '{sample_status_payload['status_name']}' could not be added" in data.get("message", "")
+    assert_message(response, f"Status '{sample_status_payload['status_name']}' could not be added", 400)
 
     # Cleanup
     status = Status.query.filter_by(name="test-status").first()
@@ -102,9 +102,8 @@ def test_delete_status_success(client, headers_with_valid_token):
         json={"status": "delete-me"},
         headers=headers_with_valid_token,
     )
+    assert_message(response, "Status 'delete-me' removed successfully", 200)
 
-    assert response.status_code == 200
-    assert response.json == {"message": "Status 'delete-me' removed successfully"}
     assert Status.get_status("delete-me") is None
 
 
@@ -114,9 +113,7 @@ def test_delete_status_not_found(client, headers_with_valid_token):
         json={"status": "non-existent"},
         headers=headers_with_valid_token,
     )
-
-    assert response.status_code == 400
-    assert "could not be removed" in response.json["message"]
+    assert_message(response, "could not be removed", 400)
 
 
 def test_delete_status_missing_field(client, headers_with_valid_token):
@@ -125,9 +122,7 @@ def test_delete_status_missing_field(client, headers_with_valid_token):
         json={},
         headers=headers_with_valid_token,
     )
-
-    assert response.status_code == 400
-    assert "Missing 'status' in request" in response.json["message"]
+    assert_message(response, "Missing 'status' in request", 400)
 
 
 def test_delete_status_invalid_value(client, headers_with_valid_token):
@@ -136,20 +131,16 @@ def test_delete_status_invalid_value(client, headers_with_valid_token):
         json={"status": "invalid value"},
         headers=headers_with_valid_token,
     )
-
-    assert response.status_code == 400
-    assert "Status 'invalid value' could not be removed" in response.json["message"]
+    assert_message(response, "Status 'invalid value' could not be removed", 400)
 
 
 def test_delete_status_unauthorized(client):
-    # Act
     response = client.delete(
         "/admin/status/",
         json={"status": "something"},
         headers={},
     )
-
-    assert response.status_code == 401
+    assert_message(response, "Missing Authorization header", 401)
 
 
 # -------------------------
@@ -180,6 +171,4 @@ def test_list_statuses_not_found(mock_list_statuses, client, headers_with_valid_
         "/admin/status/all",
         headers=headers_with_valid_token,
     )
-
-    assert response.status_code == 404
-    assert response.json["message"] == "No statuses found"
+    assert_message(response, "No statuses found", 404)
