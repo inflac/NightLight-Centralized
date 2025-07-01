@@ -1,6 +1,13 @@
 from app.models.nightline import Nightline
 
 
+def assert_message(response, expected_substring, status_code):
+    assert response.status_code == status_code
+    data = response.get_json()
+    assert "message" in data
+    assert expected_substring in data["message"]
+
+
 # -------------------------
 # public/<nightline_name>
 # -------------------------
@@ -25,8 +32,7 @@ def test_get_nightline_status_success(client):
 
 def test_get_nightline_status_not_found(client):
     response = client.get("/public/nonexistent")
-    assert response.status_code == 404
-    assert "Nightline 'nonexistent' not found" in response.get_json()["message"]
+    assert_message(response, "Nightline 'nonexistent' not found", 404)
 
 
 def test_get_nightline_status_invalid_name(client):
@@ -53,6 +59,7 @@ def test_get_all_nightlines(client):
 
 def test_filter_by_status(client):
     response = client.get("/public/all?status=default")
+
     assert response.status_code == 200
     data = response.get_json()
     assert len(data) == 1
