@@ -9,7 +9,8 @@ from app.routes.api_models import (
     error_model,
     instagram_create_model,
     set_now_model,
-    set_days_model,
+    set_days_phone_model,
+    set_days_chat_model,
     set_time_model,
     set_status_config_model,
     set_status_model,
@@ -31,7 +32,8 @@ nl_success_model = nightline_ns.model("Success", success_model)
 nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
 nl_set_status_config_model = nightline_ns.model("Set Status Config", set_status_config_model)
 nl_set_now_model = nightline_ns.model("Set Now", set_now_model)
-nl_set_days_model = nightline_ns.model("Set Days", set_days_model)
+nl_set_days_phone_model = nightline_ns.model("Set Days Phone", set_days_phone_model)
+nl_set_days_chat_model = nightline_ns.model("Set Days Chat", set_days_chat_model)
 nl_set_time_model = nightline_ns.model("Set Time", set_time_model)
 nl_instagram_create_model = nightline_ns.model("Instagram Credentials", instagram_create_model)
 
@@ -184,24 +186,24 @@ class NightlineNowResource(Resource):  # type: ignore
         response = {"message": f"Now value successfully set to '{now_value}'"}
         return response, 200
 
-@nightline_ns.route("/<string:nightline_name>/days")
+@nightline_ns.route("/<string:nightline_name>/days_phone")
 @nightline_ns.doc(security="apikey")
-class NightlineDaysResource(Resource):  # type: ignore
+class NightlineDaysPhoneResource(Resource):  # type: ignore
     @sanitize_nightline_name
     @require_api_key
-    @nightline_ns.expect(nl_set_days_model)  # type: ignore[misc]
+    @nightline_ns.expect(nl_set_days_phone_model)  # type: ignore[misc]
     @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
     @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
     @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
     def patch(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
-        """Update the 'days' of a nightline"""
+        """Update the 'days_phone' of a nightline"""
         # Parse and validate request body
         data = request.get_json(force=True, silent=True)
-        validate_request_body(cast(dict[str, Any], data), ["days"])
+        validate_request_body(cast(dict[str, Any], data), ["days_phone"])
 
-        days_value = data["days"]  # type: ignore[index]
-        if not isinstance(days_value, str):
-            abort(400, "'days' must be a string")
+        days_phone_value = data["days_phone"]  # type: ignore[index]
+        if not isinstance(days_phone_value, str):
+            abort(400, "'days_phone' must be a string")
 
         nightline = Nightline.get_nightline(nightline_name)
         if not nightline:
@@ -209,9 +211,39 @@ class NightlineDaysResource(Resource):  # type: ignore
         nightline = cast(Nightline, nightline)  # For mypi to know the correct type
 
         # Update and persist the change
-        nightline.set_days(days_value)
+        nightline.set_days_phone(days_phone_value)
 
-        response = {"message": f"Days successfully set to '{days_value}'"}
+        response = {"message": f"Days phone successfully set to '{days_phone_value}'"}
+        return response, 200
+
+@nightline_ns.route("/<string:nightline_name>/days_chat")
+@nightline_ns.doc(security="apikey")
+class NightlineDaysChatResource(Resource):  # type: ignore
+    @sanitize_nightline_name
+    @require_api_key
+    @nightline_ns.expect(nl_set_days_chat_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def patch(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
+        """Update the 'days_chat' of a nightline"""
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
+        validate_request_body(cast(dict[str, Any], data), ["days_chat"])
+
+        days_chat_value = data["days_chat"]  # type: ignore[index]
+        if not isinstance(days_chat_value, str):
+            abort(400, "'days_chat' must be a string")
+
+        nightline = Nightline.get_nightline(nightline_name)
+        if not nightline:
+            abort(404, f"Nightline '{nightline_name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
+
+        # Update and persist the change
+        nightline.set_days_chat(days_chat_value)
+
+        response = {"message": f"Days chat successfully set to '{days_chat_value}'"}
         return response, 200
 
 @nightline_ns.route("/<string:nightline_name>/time")

@@ -38,7 +38,8 @@ class PublicNightlineStatusResource(Resource):  # type: ignore
             "description_now_de": nightline.status.description_now_de,
             "description_now_en": nightline.status.description_now_en,
             "now": nightline.now,
-            "days": nightline.days,
+            "days_phone": nightline.days_phone,
+            "days_chat": nightline.days_chat,
             "time": nightline.time,
         }
         return response, 200

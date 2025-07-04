@@ -17,7 +17,8 @@ class Nightline(db.Model):  # type: ignore
     __tablename__ = "nightlines"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    days = db.Column(db.String(100), nullable=False, unique=True)
+    days_phone = db.Column(db.String(100), nullable=False, unique=True)
+    days_chat = db.Column(db.String(100), nullable=False, unique=True)
     time = db.Column(db.String(50), nullable=False, unique=True)
     status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"), nullable=False)
     status = db.relationship("Status", backref="nightlines")

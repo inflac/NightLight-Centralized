@@ -16,6 +16,27 @@ def preinitialize_statuses() -> bool:
             "description_now_en": "We're now available 📞",
         },
         {
+            "name": "phone",
+            "description_de": "",
+            "description_en": "",
+            "description_now_de": "Wir sind jetzt per Telefon erreichbar 📞",
+            "description_now_en": "We're now available via phone 📞",
+        },
+        {
+            "name": "phone-chat",
+            "description_de": "",
+            "description_en": "",
+            "description_now_de": "Wir sind jetzt sowohl per Telefon als auch per Chat erreichbar 📞 📩",
+            "description_now_en": "We're now available both via phone and chat 📞 📩",
+        },
+        {
+            "name": "chat",
+            "description_de": "",
+            "description_en": "",
+            "description_now_de": "Wir sind jetzt per Chat erreichbar 📩",
+            "description_now_en": "We're now available via chat 📩",
+        },
+        {
             "name": "german",
             "description_de": "Heute sind wir nur auf Deutsch erreichbar 📞",
             "description_en": "Today we're only available in German 📞",

@@ -36,8 +36,12 @@ set_now_model = {
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
 
-set_days_model = {
-    "days": fields.String(required=True, description="Days the nightline is available"),
+set_days_phone_model = {
+    "days_phone": fields.String(required=True, description="Days the nightline is available via phone"),
+}
+
+set_days_chat_model = {
+    "days_chat": fields.String(required=True, description="Days the nightline is available via chat"),
 }
 
 set_time_model = {
