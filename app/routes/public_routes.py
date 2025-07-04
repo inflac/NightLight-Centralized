@@ -38,6 +38,9 @@ class PublicNightlineStatusResource(Resource):  # type: ignore
             "description_now_de": nightline.status.description_now_de,
             "description_now_en": nightline.status.description_now_en,
             "now": nightline.now,
+            "days_phone": nightline.days_phone,
+            "days_chat": nightline.days_chat,
+            "time": nightline.time,
         }
         return response, 200
 
@@ -71,6 +74,9 @@ class PublicNightlineListResource(Resource):  # type: ignore
         response = [
             {
                 "nightline_name": nightline.name,
+                "days_phone": nightline.days_phone,
+                "days_chat": nightline.days_chat,
+                "time": nightline.time,
                 "status_name": nightline.status.name,
                 "description_de": nightline.status.description_de,
                 "description_en": nightline.status.description_en,
