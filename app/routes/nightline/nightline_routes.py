@@ -9,6 +9,8 @@ from app.routes.api_models import (
     error_model,
     instagram_create_model,
     set_now_model,
+    set_days_model,
+    set_time_model,
     set_status_config_model,
     set_status_model,
     success_model,
@@ -29,6 +31,8 @@ nl_success_model = nightline_ns.model("Success", success_model)
 nl_set_status_model = nightline_ns.model("Set Status", set_status_model)
 nl_set_status_config_model = nightline_ns.model("Set Status Config", set_status_config_model)
 nl_set_now_model = nightline_ns.model("Set Now", set_now_model)
+nl_set_days_model = nightline_ns.model("Set Days", set_days_model)
+nl_set_time_model = nightline_ns.model("Set Time", set_time_model)
 nl_instagram_create_model = nightline_ns.model("Instagram Credentials", instagram_create_model)
 
 upload_parser = reqparse.RequestParser()
@@ -180,7 +184,66 @@ class NightlineNowResource(Resource):  # type: ignore
         response = {"message": f"Now value successfully set to '{now_value}'"}
         return response, 200
 
+@nightline_ns.route("/<string:nightline_name>/days")
+@nightline_ns.doc(security="apikey")
+class NightlineDaysResource(Resource):  # type: ignore
+    @sanitize_nightline_name
+    @require_api_key
+    @nightline_ns.expect(nl_set_days_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def patch(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
+        """Update the 'days' of a nightline"""
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
+        validate_request_body(cast(dict[str, Any], data), ["days"])
 
+        days_value = data["days"]  # type: ignore[index]
+        if not isinstance(days_value, str):
+            abort(400, "'days' must be a string")
+
+        nightline = Nightline.get_nightline(nightline_name)
+        if not nightline:
+            abort(404, f"Nightline '{nightline_name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
+
+        # Update and persist the change
+        nightline.set_days(days_value)
+
+        response = {"message": f"Days successfully set to '{days_value}'"}
+        return response, 200
+
+@nightline_ns.route("/<string:nightline_name>/time")
+@nightline_ns.doc(security="apikey")
+class NightlineTimeResource(Resource):  # type: ignore
+    @sanitize_nightline_name
+    @require_api_key
+    @nightline_ns.expect(nl_set_time_model)  # type: ignore[misc]
+    @nightline_ns.response(200, "Success", nl_success_model)  # type: ignore[misc]
+    @nightline_ns.response(400, "Bad Request", nl_error_model)  # type: ignore[misc]
+    @nightline_ns.response(404, "Nightline Not Found", nl_error_model)  # type: ignore[misc]
+    def patch(self, nightline_name: str) -> Tuple[Dict[str, str], int]:
+        """Update the 'time' of a nightline"""
+        # Parse and validate request body
+        data = request.get_json(force=True, silent=True)
+        validate_request_body(cast(dict[str, Any], data), ["time"])
+
+        time_value = data["time"]  # type: ignore[index]
+        if not isinstance(time_value, str):
+            abort(400, "'time' must be a string")
+
+        nightline = Nightline.get_nightline(nightline_name)
+        if not nightline:
+            abort(404, f"Nightline '{nightline_name}' not found")
+        nightline = cast(Nightline, nightline)  # For mypi to know the correct type
+
+        # Update and persist the change
+        nightline.set_time(time_value)
+
+        response = {"message": f"Time successfully set to '{time_value}'"}
+        return response, 200
+    
 @nightline_ns.route("/<string:nightline_name>/instagram")
 @nightline_ns.doc(security="apikey")
 class NightlineInstagramResource(Resource):  # type: ignore

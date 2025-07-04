@@ -36,10 +36,20 @@ set_now_model = {
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
 }
 
+set_days_model = {
+    "days": fields.String(required=True, description="Days the nightline is available"),
+}
+
+set_time_model = {
+    "time": fields.String(required=True, description="Time the nightline is available"),
+}
+
 # API model for nightline objects
 nightline_model = {
     "nightline_name": fields.String(required=True, description="Name of the nightline"),
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
+    "days": fields.String(required=True, description="Days the nightline is available"),
+    "time": fields.String(required=True, description="Time the nightline is available"),
 }
 
 # API model for nightline statuses
@@ -64,4 +74,6 @@ admin_nightline_model = {
     "status_name": fields.String(required=True, description="Name of the status"),
     "instagram_media_id": fields.String(required=True, description="ID of an Instagram post"),
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
+    "days": fields.String(required=True, description="Days the nightline is available"),
+    "time": fields.String(required=True, description="Time the nightline is available"),
 }

@@ -8,6 +8,8 @@ __all__ = [
     "set_status_model",
     "set_status_config_model",
     "set_now_model",
+    "set_days_model",
+    "set_time_model",
     "nightline_model",
     "nightline_status_model",
     "instagram_create_model",

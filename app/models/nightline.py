@@ -17,6 +17,8 @@ class Nightline(db.Model):  # type: ignore
     __tablename__ = "nightlines"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
+    days = db.Column(db.String(100), nullable=False, unique=True)
+    time = db.Column(db.String(50), nullable=False, unique=True)
     status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"), nullable=False)
     status = db.relationship("Status", backref="nightlines")
     nightline_statuses = db.relationship("NightlineStatus", back_populates="nightline", cascade="all, delete-orphan")
@@ -52,7 +54,7 @@ class Nightline(db.Model):  # type: ignore
             return None
 
         try:
-            new_nightline = cls(name=name, status=default_status)
+            new_nightline = cls(name=name, status=default_status, days="", time="")
             db.session.add(new_nightline)
             db.session.commit()
             logger.debug(f"Created nightline: '{name}'")
@@ -175,6 +177,30 @@ class Nightline(db.Model):  # type: ignore
             return True
         except Exception as e:
             logger.error(f"Failed to set now value for nightline '{self.name}' to '{now}': {e}")
+            db.session.rollback()
+            return False
+        
+    def set_days(self, days: str) -> bool:
+        """Set the days value of a nightline"""
+        try:
+            logger.info(f"Set the days value of nightline: '{self.name}' to: '{days}'")
+            self.days = days
+            db.session.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set days value for nightline '{self.name}' to '{days}': {e}")
+            db.session.rollback()
+            return False
+
+    def set_time(self, time: str) -> bool:
+        """Set the time value of a nightline"""
+        try:
+            logger.info(f"Set the time value of nightline: '{self.name}' to: '{time}'")
+            self.time = time
+            db.session.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set time value for nightline '{self.name}' to '{time}': {e}")
             db.session.rollback()
             return False
 

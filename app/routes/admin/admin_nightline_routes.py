@@ -43,6 +43,8 @@ class NightlineResource(Resource):  # type: ignore
             "status_name": nightline.status.name,
             "instagram_media_id": nightline.instagram_media_id,
             "now": nightline.now,
+            "days": nightline.days,
+            "time": nightline.time,
         }
         return response, 200
 
