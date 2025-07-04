@@ -55,7 +55,7 @@ class Nightline(db.Model):  # type: ignore
             return None
 
         try:
-            new_nightline = cls(name=name, status=default_status, days="", time="")
+            new_nightline = cls(name=name, status=default_status, days_phone="", days_chat="", time="")
             db.session.add(new_nightline)
             db.session.commit()
             logger.debug(f"Created nightline: '{name}'")

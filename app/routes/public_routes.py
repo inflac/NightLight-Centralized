@@ -74,7 +74,8 @@ class PublicNightlineListResource(Resource):  # type: ignore
         response = [
             {
                 "nightline_name": nightline.name,
-                "days": nightline.days,
+                "days_phone": nightline.days_phone,
+                "days_chat": nightline.days_chat,
                 "time": nightline.time,
                 "status_name": nightline.status.name,
                 "description_de": nightline.status.description_de,

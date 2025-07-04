@@ -78,6 +78,7 @@ admin_nightline_model = {
     "status_name": fields.String(required=True, description="Name of the status"),
     "instagram_media_id": fields.String(required=True, description="ID of an Instagram post"),
     "now": fields.Boolean(required=True, description="'Now' boolean status of the nightline"),
-    "days": fields.String(required=True, description="Days the nightline is available"),
+    "days_phone": fields.String(required=True, description="Days the nightline is available via phone"),
+    "days_chat": fields.String(required=True, description="Days the nightline is available via chat"),
     "time": fields.String(required=True, description="Time the nightline is available"),
 }
