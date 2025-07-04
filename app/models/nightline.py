@@ -181,15 +181,27 @@ class Nightline(db.Model):  # type: ignore
             db.session.rollback()
             return False
         
-    def set_days(self, days: str) -> bool:
-        """Set the days value of a nightline"""
+    def set_days_phone(self, days_phone: str) -> bool:
+        """Set the days_phone value of a nightline"""
         try:
-            logger.info(f"Set the days value of nightline: '{self.name}' to: '{days}'")
-            self.days = days
+            logger.info(f"Set the days_phone value of nightline: '{self.name}' to: '{days_phone}'")
+            self.days_phone = days_phone
             db.session.commit()
             return True
         except Exception as e:
-            logger.error(f"Failed to set days value for nightline '{self.name}' to '{days}': {e}")
+            logger.error(f"Failed to set days_phone value for nightline '{self.name}' to '{days_phone}': {e}")
+            db.session.rollback()
+            return False
+        
+    def set_days_chat(self, days_chat: str) -> bool:
+        """Set the days_chat value of a nightline"""
+        try:
+            logger.info(f"Set the days_chat value of nightline: '{self.name}' to: '{days_chat}'")
+            self.days_chat = days_chat
+            db.session.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set days_chat value for nightline '{self.name}' to '{days_chat}': {e}")
             db.session.rollback()
             return False
 
